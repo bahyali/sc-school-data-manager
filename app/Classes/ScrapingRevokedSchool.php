@@ -107,7 +107,13 @@ class ScrapingRevokedSchool {
 
 	public function storeRevokedSchool($array){
         $array['status'] = 'revoked';
-        return $School = SchoolRevision::create($array);
+		$school = School::updateOrCreate(['number'=>$array['number']]);
+        $array['school_id'] = $school->id;
+        SchoolRevision::create($array);
+
+        $latest_ver = $school->getLatestVersion();
+        $school->revision_id = $latest_ver->id;
+        $school->save();
 
 	}
 }

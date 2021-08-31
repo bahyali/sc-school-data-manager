@@ -3,6 +3,7 @@
 namespace App\Classes;
 use Symfony\Component\DomCrawler\Crawler;
 use App\Models\School;
+use App\Models\SchoolRevision;
 
 
 
@@ -105,9 +106,22 @@ class ScrapingClosedSchool {
 
 
 
+	// public function storeClosedSchool($array){
+ //        $array['status'] = 'closed';
+ //        return $School = School::create($array);
+
+	// }
+
+
 	public function storeClosedSchool($array){
         $array['status'] = 'closed';
-        return $School = School::create($array);
+		$school = School::updateOrCreate(['number'=>$array['number']]);
+        $array['school_id'] = $school->id;
+        SchoolRevision::create($array);
+
+        $latest_ver = $school->getLatestVersion();
+        $school->revision_id = $latest_ver->id;
+        $school->save();
 
 	}
 }
