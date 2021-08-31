@@ -18,6 +18,11 @@ class CreateDataSourcesTable extends Migration
             $table->string('name');
             $table->json('configuration')->nullable();
             $table->string('resource')->nullable();
+            $table->string('last_sync')->nullable();
+            $table->boolean('active')->nullable();
+            $table->string('checksum')->nullable();
+            $table->string('url')->nullable();
+
 
             $table->timestamps();
         });

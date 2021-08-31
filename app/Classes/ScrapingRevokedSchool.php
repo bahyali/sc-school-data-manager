@@ -3,6 +3,8 @@
 namespace App\Classes;
 use Symfony\Component\DomCrawler\Crawler;
 use App\Models\School;
+use Storage;
+use App\Models\SchoolRevision;
 
 
 
@@ -17,7 +19,11 @@ class ScrapingRevokedSchool {
     	$html = ''.$res->getBody();
 
     	$crawler = new Crawler($html);
+    	// var_dump($crawler);
     	$nodeValues = $crawler->filter('#right_column ol li');
+
+    	// dd($nodeValues);
+
 
     	$nodeValues->each(function ($node) {
 
@@ -101,7 +107,7 @@ class ScrapingRevokedSchool {
 
 	public function storeRevokedSchool($array){
         $array['status'] = 'revoked';
-        return $School = School::create($array);
+        return $School = SchoolRevision::create($array);
 
 	}
 }

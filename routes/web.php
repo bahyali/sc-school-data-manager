@@ -18,14 +18,18 @@ Route::get('/', function () {
 });
 
 
-Route::get('/upload', function () {
-    return view('upload');
+Route::get('/all/upload', function () {
+    return view('all_upload');
+});
+
+
+Route::get('/active/upload', function () {
+    return view('active_upload');
 });
 
 
 
-Route::post('/import', [App\Http\Controllers\ImporterController::class, 'importing'])->name('import');
-
+Route::post('/import/excel', [App\Http\Controllers\ImporterController::class, 'excelImporting'])->name('excelImporting');
 
 
 Route::get('/revoked/store', [App\Http\Controllers\ImporterController::class, 'storeRevokedSchools'])->name('storeRevokedSchools');
