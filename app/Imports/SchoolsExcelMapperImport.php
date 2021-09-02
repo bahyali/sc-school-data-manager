@@ -3,16 +3,15 @@
 namespace App\Imports;
 
 use App\Models\School;
-use App\Models\SchoolRevision;
 use Maatwebsite\Excel\Concerns\ToModel;
-use Illuminate\Database\Eloquent\Model;
 use Maatwebsite\Excel\Concerns\WithStartRow;
+use Maatwebsite\Excel\Concerns\Importable;
 
 
 class SchoolsExcelMapperImport implements ToModel, WithStartRow
-
 {
-    private $data_source;
+    use Importable;
+
     private $status;
 
     public function __construct($data_source, $status)
@@ -23,6 +22,7 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
 
     public function startRow(): int
     {
+        // TODO make this configurable 
         return 2;
     }
 
@@ -34,15 +34,12 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
         foreach ($this->configuration as $key => $value) {
             $array[$key] = $row[$value];
         }
-        // dd($array);
-        $school = School::updateOrCreate(['number'=>$array['number']]);
-        $array['school_id'] = $school->id;
 
-        SchoolRevision::create($array);
-
-        $latest_ver = $school->getLatestVersion();
-        $school->revision_id = $latest_ver->id;
+        $school = School::updateOrCreate(['number' => $array['number']]);
+        $revision = $school->revisions()->create($array);
+        $school->lastRevision()->associate($revision);
         $school->save();
 
+        return $school;
     }
 }

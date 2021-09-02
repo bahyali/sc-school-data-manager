@@ -16,6 +16,10 @@ class School extends Model
         return $this->hasMany(SchoolRevision::class);
     }
 
+    public function lastRevision() {
+        return $this->belongsTo(SchoolRevision::class, 'revision_id');
+    }
+
     public function getLatestVersion(){
     	
 	  return $revision = $this->revisions()->orderByRaw("FIELD(status , 'closed', 'active', 'revoked')")->latest()->first();
