@@ -15,4 +15,9 @@ class SchoolRevision extends Model
     {
         return $this->belongsTo(School::class);
     }
+
+    public function setStatusAttribute($value)
+    {
+        $this->attributes['status'] = strtolower($value);
+    }
 }
