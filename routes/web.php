@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\DataSource;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,8 +19,9 @@ Route::get('/', function () {
 });
 
 
-Route::get('/all/upload', function () {
-    return view('all_upload');
+Route::get('/gui/upload', function () {
+    $excel_data_sources = DataSource::where('resource', 'excel')->pluck('name');
+    return view('all_upload', ['data_sources' => $excel_data_sources]);
 });
 
 
@@ -27,12 +29,8 @@ Route::get('/active/upload', function () {
     return view('active_upload');
 });
 
-
-
 Route::post('/import/excel', [App\Http\Controllers\ImporterController::class, 'excelImporting'])->name('excelImporting');
 
+Route::get('/crawl/revoked', [App\Http\Controllers\ImporterController::class, 'storeRevokedSchools'])->name('storeRevokedSchools');
 
-Route::get('/revoked/store', [App\Http\Controllers\ImporterController::class, 'storeRevokedSchools'])->name('storeRevokedSchools');
-Route::get('/closed/store', [App\Http\Controllers\ImporterController::class, 'storeClosedSchools'])->name('storeClosedSchools');
-
-
+Route::get('/crawl/closed', [App\Http\Controllers\ImporterController::class, 'storeClosedSchools'])->name('storeClosedSchools');
