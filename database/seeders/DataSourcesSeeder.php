@@ -18,8 +18,11 @@ class DataSourcesSeeder extends Seeder
         $defined_types = [
             [
                 'name'  => 'private_schools_ontarion',
-                'configuration' => 
-                    [
+                'configuration' => [
+                    'overrides' => [
+                        'status' => 'active'
+                    ],
+                    'mapping' => [
                         'name' => 0,
                         'number' => 1,
                         'ossd_credits_offered' => 2,
@@ -36,14 +39,16 @@ class DataSourcesSeeder extends Seeder
                         'program_type' => 16,
                         'association_membership' => 17,
                     ],
+                ],
                 'resource' => 'excel',
                 'url' => NULL,
             ],
 
             [
                 'name'  => 'onsis_all_schools',
-                'configuration' => 
-                    [
+                'configuration' => [
+                    'overrides' => [],
+                    'mapping' => [
                         'status' => 0,
                         'name' => 1,
                         'number' => 2,
@@ -60,6 +65,7 @@ class DataSourcesSeeder extends Seeder
                         'corporation_contact_name' => 15,
                         'enrollment' => 16,
                     ],
+                ],
                 'resource' => 'excel',
                 'url' => NULL,
             ],
@@ -71,7 +77,7 @@ class DataSourcesSeeder extends Seeder
             ],
         ];
 
-        foreach($defined_types as $defined_type) {
+        foreach ($defined_types as $defined_type) {
             $data_source = new DataSource();
             $data_source->name = $defined_type['name'];
             $data_source->configuration = $defined_type['configuration'];
