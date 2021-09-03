@@ -5,15 +5,17 @@ use Symfony\Component\DomCrawler\Crawler;
 use App\Models\School;
 use Storage;
 use App\Models\SchoolRevision;
+use App\Classes\ScrapingGetter;
 
 
 
-class ScrapingRevokedSchool {
+class ScrapingRevokedSchool extends ScrapingGetter {
 
+protected $status = 'revoked';
 
     public function start() {
 
-    	$url = 'http://www.edu.gov.on.ca/eng/general/elemsec/privsch/revoked.html#1920';
+    	$url = 'http://www.edu.gov.on.ca/eng/general/elemsec/privsch/revoked.html';
     	$client = new \GuzzleHttp\Client();
     	$res = $client->request('GET', $url);
     	$html = ''.$res->getBody();
@@ -52,35 +54,9 @@ class ScrapingRevokedSchool {
 
 		$revoked_school = ['name' =>$name, 'number' =>$number, 'address_line_1' =>$address_line_1, 'address_line_2' =>$address_line_2, 'principal_name' =>$principal_name, 'owner_business' =>$owner_business, 'revoked_date' =>$revoked_date, ];
 
-			return $this->storeRevokedSchool($revoked_school);
+			return $this->storeScrapingSchool($revoked_school, $this->status);
 		});
     }
-
-
-
-    public function getSchoolName($string){
-		$name = explode('School No', $string);
-		$name = str_replace(',', '', $name[0]);
-		return rtrim($name);
-	}
-
-
-
-	public function getSchoolNumber($string){
-		$string = rtrim($string);
-	 	preg_match_all("/\d+/", $string, $new_string);
-		$number = end($new_string[0]);
-	    return $number;
-
-	}
-
-
-	public function getRevokedDate($string){
-		$revoked_date = explode('revoked effective', $string);
-	 	$revoked_date = trim($revoked_date[1]);
-	    return $revoked_date;
-
-	}
 
 
 	public function getPrincipalName($string){
@@ -105,15 +81,15 @@ class ScrapingRevokedSchool {
 		else return '';
 	}
 
-	public function storeRevokedSchool($array){
-        $array['status'] = 'revoked';
-		$school = School::updateOrCreate(['number'=>$array['number']]);
-        $array['school_id'] = $school->id;
-        SchoolRevision::create($array);
+	// public function storeRevokedSchool($array){
+ //        $array['status'] = 'revoked';
+	// 	$school = School::updateOrCreate(['number'=>$array['number']]);
+ //        $array['school_id'] = $school->id;
+ //        SchoolRevision::create($array);
 
-        $latest_ver = $school->getLatestVersion();
-        $school->revision_id = $latest_ver->id;
-        $school->save();
+ //        $latest_ver = $school->getLatestVersion();
+ //        $school->revision_id = $latest_ver->id;
+ //        $school->save();
 
-	}
+	// }
 }

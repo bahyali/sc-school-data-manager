@@ -67,7 +67,15 @@ class DataSourcesSeeder extends Seeder
                 'name'  => 'revoked_schools',
                 'configuration' => NULL,
                 'resource' => 'html',
-                'url' => 'http://www.edu.gov.on.ca/eng/general/elemsec/privsch/revoked.html#1920',
+                'url' => 'http://www.edu.gov.on.ca/eng/general/elemsec/privsch/revoked.html',
+            ],
+
+
+            [
+                'name'  => 'closed_schools',
+                'configuration' => NULL,
+                'resource' => 'html',
+                'url' => 'http://www.edu.gov.on.ca/eng/general/elemsec/privsch/closed.html',
             ],
         ];
 

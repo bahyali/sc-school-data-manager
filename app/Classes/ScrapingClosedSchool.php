@@ -4,15 +4,18 @@ namespace App\Classes;
 use Symfony\Component\DomCrawler\Crawler;
 use App\Models\School;
 use App\Models\SchoolRevision;
+use App\Classes\ScrapingGetter;
 
 
 
-class ScrapingClosedSchool {
+class ScrapingClosedSchool extends ScrapingGetter {
 
+
+	protected $status = 'closed';
 
     public function start() {
 
-    	$url = 'http://www.edu.gov.on.ca/eng/general/elemsec/privsch/closed.html#2021';
+    	$url = 'http://www.edu.gov.on.ca/eng/general/elemsec/privsch/closed.html';
     	$client = new \GuzzleHttp\Client();
     	$res = $client->request('GET', $url);
     	$html = ''.$res->getBody();
@@ -44,30 +47,13 @@ class ScrapingClosedSchool {
 			   	'principal_name' =>$principal_name, 
 			   	'owner_business' =>$owner_business, 
 			];
-			return $this->storeClosedSchool($closed_school);
+			return $this->storeScrapingSchool($closed_school, $this->status);
+			
 
 			
 
 		});
     }
-
-
-
-    public function getSchoolName($string){
-		$name = explode('School No', $string);
-		$name = str_replace(',', '', $name[0]);
-		return rtrim($name);
-	}
-
-
-
-	public function getSchoolNumber($string){
-		$string = rtrim($string);
-	 	preg_match_all("/\d+/", $string, $new_string);
-		$number = end($new_string[0]);
-	    return $number;
-
-	}
 
 
 	public function getPrincipalName($string){
@@ -105,23 +91,4 @@ class ScrapingClosedSchool {
 	}
 
 
-
-	// public function storeClosedSchool($array){
- //        $array['status'] = 'closed';
- //        return $School = School::create($array);
-
-	// }
-
-
-	public function storeClosedSchool($array){
-        $array['status'] = 'closed';
-		$school = School::updateOrCreate(['number'=>$array['number']]);
-        $array['school_id'] = $school->id;
-        SchoolRevision::create($array);
-
-        $latest_ver = $school->getLatestVersion();
-        $school->revision_id = $latest_ver->id;
-        $school->save();
-
-	}
 }
