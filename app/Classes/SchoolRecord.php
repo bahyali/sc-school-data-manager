@@ -32,7 +32,7 @@ class SchoolRecord implements ISchoolRecord
 
         $revision['data_source_id'] = $data_source->id;
 
-        $revision_model = $this->school->revisions()->create($revision);
+        $revision_model = $this->school->revisions()->firstOrCreate($revision);
         $this->school->lastRevision()->associate($revision_model);
         $this->school->save();
 
@@ -42,7 +42,7 @@ class SchoolRecord implements ISchoolRecord
     public function getSchool($id)
     {
         $this->school = $this->model->findOrFail($id);
-        
+
         return $this;
     }
 }
