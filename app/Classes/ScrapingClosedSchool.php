@@ -3,8 +3,6 @@
 namespace App\Classes;
 
 use Symfony\Component\DomCrawler\Crawler;
-use App\Models\School;
-use App\Models\SchoolRevision;
 use App\Classes\ScrapingGetter;
 
 
@@ -12,12 +10,6 @@ use App\Classes\ScrapingGetter;
 class ScrapingClosedSchool extends ScrapingGetter
 {
 	protected $status = 'closed';
-	
-	public function __construct($data_source)
-	{
-		$this->data_source = $data_source;
-		$this->url = $data_source['configuration']['url'];
-	}
 
 	public function start()
 	{

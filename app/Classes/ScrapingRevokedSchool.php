@@ -3,26 +3,13 @@
 namespace App\Classes;
 
 use Symfony\Component\DomCrawler\Crawler;
-use App\Models\School;
-use Storage;
-use App\Models\SchoolRevision;
 use App\Classes\ScrapingGetter;
 
 
 
 class ScrapingRevokedSchool extends ScrapingGetter
 {
-
 	protected $status = 'revoked';
-	protected $data_source;
-	protected $url;
-
-	public function __construct($data_source)
-	{
-		$this->data_source = $data_source;
-		$this->url = $data_source['configuration']['url'];
-	}
-
 
 	public function start()
 	{
