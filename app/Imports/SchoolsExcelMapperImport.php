@@ -51,7 +51,5 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
 
         $school = $record->addSchool($array['number']);
         $school->addRevision($array, $this->data_source);
-
-        return $school;
     }
 }
