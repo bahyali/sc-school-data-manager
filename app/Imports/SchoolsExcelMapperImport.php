@@ -2,10 +2,13 @@
 
 namespace App\Imports;
 
-use App\Models\School;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\Importable;
+
+use Illuminate\Support\Facades\App;
+use App\Classes\SchoolRecord;
+
 
 
 class SchoolsExcelMapperImport implements ToModel, WithStartRow
@@ -44,10 +47,10 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
             $array[$key] = $row[$value];
         }
 
-        $school = School::updateOrCreate(['number' => $array['number']]);
-        $revision = $school->revisions()->create($array);
-        $school->lastRevision()->associate($revision);
-        $school->save();
+        $record = App::make(SchoolRecord::class);
+
+        $school = $record->addSchool($array['number']);
+        $school->addRevision($array, $this->data_source);
 
         return $school;
     }

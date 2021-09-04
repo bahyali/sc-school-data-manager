@@ -2,8 +2,8 @@
 
 namespace App\Classes;
 
-use App\Models\School;
-use App\Models\SchoolRevision;
+use App\Classes\SchoolRecord;
+use Illuminate\Support\Facades\App;
 
 
 class ScrapingGetter
@@ -40,16 +40,11 @@ class ScrapingGetter
         return $revoked_date;
     }
 
-    public static function storeScrapingSchool($array, $status)
+    public function storeScrapingSchool($array, $status)
     {
+        $record = App::make(SchoolRecord::class);
         $array['status'] = $status;
-        $school = School::updateOrCreate(['number' => $array['number']]);
-        $array['school_id'] = $school->id;
-        SchoolRevision::create($array);
-
-        $latest_ver = $school->getLatestVersion();
-        $school->revision_id = $latest_ver->id;
-        $school->status = $latest_ver->status;
-        $school->save();
+        $school = $record->addSchool($array['number']);
+        $school->addRevision($array, $this->data_source);
     }
 }

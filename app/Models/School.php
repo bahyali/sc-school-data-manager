@@ -26,13 +26,9 @@ class School extends Model
     }
 
 
-
     public function getSchool()
     {
         return $this->belongsTo(SchoolRevision::class, 'revision_id');
     }
-
-
-
 
 }
