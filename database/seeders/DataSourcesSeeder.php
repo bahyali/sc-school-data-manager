@@ -17,7 +17,7 @@ class DataSourcesSeeder extends Seeder
     {
         $defined_types = [
             [
-                'name'  => 'private_schools_ontarion',
+                'name'  => 'private_schools_ontario',
                 'configuration' => [
                     'overrides' => [
                         'status' => 'active'
@@ -71,10 +71,26 @@ class DataSourcesSeeder extends Seeder
             ],
             [
                 'name'  => 'revoked_schools',
-                'configuration' => NULL,
+                'configuration' => [
+                    'url' => 'http://www.edu.gov.on.ca/eng/general/elemsec/privsch/revoked.html#1920'
+                ],
                 'resource' => 'html',
-                'url' => 'http://www.edu.gov.on.ca/eng/general/elemsec/privsch/revoked.html#1920',
+                'url' => NULL,
             ],
+            [
+                'name'  => 'closed_schools',
+                'configuration' => [
+                    'url' => 'http://www.edu.gov.on.ca/eng/general/elemsec/privsch/closed.html#2021',
+                ],
+                'resource' => 'html',
+                'url' => NULL,
+            ],
+            [
+                'name'  => 'schoolcred_engine',
+                'configuration' => [],
+                'resource' => 'auto_mixer',
+                'url' => NULL,
+            ]
         ];
 
         foreach ($defined_types as $defined_type) {
