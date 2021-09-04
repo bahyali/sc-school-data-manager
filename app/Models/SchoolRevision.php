@@ -20,4 +20,14 @@ class SchoolRevision extends Model
     {
         $this->attributes['status'] = strtolower($value);
     }
+
+    public function dataSource()
+    {
+        return $this->belongsTo(DataSource::class);
+    }
+
+    public function scopeByDataSourceId($query, $data_source_id)
+    {
+        return $query->where('data_source_id', $data_source_id);
+    }
 }

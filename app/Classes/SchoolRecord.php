@@ -18,13 +18,13 @@ class SchoolRecord implements ISchoolRecord
         $this->model = $school;
 
         if ($id)
-            $this->getSchool($id);
+            $this->fetchSchool($id);
     }
 
     public function addSchool($school_number)
     {
         $this->school = $this->model->updateOrCreate(['number' => $school_number]);
-        
+
         return $this;
     }
 
@@ -42,17 +42,29 @@ class SchoolRecord implements ISchoolRecord
         return $this;
     }
 
-    public function getSchool($id)
+    public function fetchSchool($id)
     {
         $this->school = $this->model->findOrFail($id);
 
         return $this;
     }
+
+    public function getSchool()
+    {
+        return $this->school;
+    }
+
+
+    public function remix()
+    {
+        $mixer = DataMixer::getInstance();
+        $mixer->run($this);
+    }
 }
 
 interface ISchoolRecord
 {
-    function getSchool($id);
+    function fetchSchool($id);
 
     function addRevision($revision, DataSource $data_source);
 

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class School extends Model
 {
     use HasFactory;
+
     protected $guarded = ['id'];
 
 
@@ -16,13 +17,20 @@ class School extends Model
         return $this->hasMany(SchoolRevision::class)->latest();
     }
 
-    public function lastRevision() {
+    public function lastRevision()
+    {
         return $this->belongsTo(SchoolRevision::class, 'revision_id');
     }
 
-    public function getLatestVersion(){
-    	
-	  return $revision = $this->revisions()->orderByRaw("FIELD(status , 'closed', 'active', 'revoked')")->latest()->first();
+    public function dataSources()
+    {
+        return $this->belongsToMany(DataSource::class, 'school_revisions');
+    }
+
+    public function getLatestVersion()
+    {
+
+        return $revision = $this->revisions()->orderByRaw("FIELD(status , 'closed', 'active', 'revoked')")->latest()->first();
     }
 
 
@@ -30,5 +38,4 @@ class School extends Model
     {
         return $this->belongsTo(SchoolRevision::class, 'revision_id');
     }
-
 }
