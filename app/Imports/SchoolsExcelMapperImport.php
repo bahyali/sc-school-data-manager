@@ -13,10 +13,12 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
     use Importable;
 
     private $status;
+    private $data_source;
     private $configuration;
 
     public function __construct($data_source, $status)
     {
+        $this->data_source = $data_source;
         $this->configuration = $data_source->configuration;
         $this->status = $status;
     }
@@ -30,8 +32,8 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
     public function model(array $row)
     {
         $array = [];
-        $array['status'] = $this->status;
-
+        $array['data_source_id'] = $this->data_source->id;
+        
         // Apply column overrides
         if (count($this->configuration['overrides']) > 0)
             foreach ($this->configuration['overrides'] as $key => $value)
