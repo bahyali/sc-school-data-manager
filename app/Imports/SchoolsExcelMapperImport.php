@@ -32,11 +32,10 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
         return 2;
     }
 
+    // TODO convert to MAP since we don't need models anymore.
     public function model(array $row)
     {
-        $array = [];
-        $array['data_source_id'] = $this->data_source->id;
-        
+        $array = [];        
         // Apply column overrides
         if (count($this->configuration['overrides']) > 0)
             foreach ($this->configuration['overrides'] as $key => $value)
