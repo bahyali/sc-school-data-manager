@@ -15,15 +15,13 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
 {
     use Importable;
 
-    private $status;
     private $data_source;
     private $configuration;
 
-    public function __construct($data_source, $status)
+    public function __construct($data_source)
     {
         $this->data_source = $data_source;
         $this->configuration = $data_source->configuration;
-        $this->status = $status;
     }
 
     public function startRow(): int

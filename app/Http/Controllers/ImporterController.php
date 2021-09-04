@@ -29,7 +29,7 @@ class ImporterController extends Controller
 
 		// return $request->school_status;
 
-		$this->importFromExcel($data_source, $request->file('schools_file'), $request->school_status);
+		$this->importFromExcel($data_source, $request->file('schools_file'));
 
 		$data_source->update(['checksum' => $file_checksum]);
 
@@ -37,11 +37,11 @@ class ImporterController extends Controller
 	}
 
 
-	public function importFromExcel($data_source, $file, $status)
+	public function importFromExcel($data_source, $file)
 	{
 		// Force excel to take only first sheet temporarily.
 		// TODO Handle multiple sheet definitions
-		$import = (new FirstSheetImporter($data_source, $status))->import($file);
+		$import = (new FirstSheetImporter($data_source))->import($file);
 
 		return $import;
 	}
