@@ -25,14 +25,14 @@ class ImporterController extends Controller
 
 		if ($data_source->checksum == $file_checksum)
 			return 'This file was uploaded before!';
-		
+
 
 		// return $request->school_status;
 
 		$this->importFromExcel($data_source, $request->file('schools_file'), $request->school_status);
 
 		$data_source->update(['checksum' => $file_checksum]);
-		
+
 		return 'done';
 	}
 
@@ -61,7 +61,10 @@ class ImporterController extends Controller
 
 		// return$data_source = DataSource::where('name', 'revoked_schools')->first();
 
-		$revoked_school = new ScrapingRevokedSchool;
+		$data_source = DataSource::where('name', 'revoked_schools')
+			->first();
+
+		$revoked_school = new ScrapingRevokedSchool($data_source);
 		$revoked_school = $revoked_school->start();
 		return 'done';
 	}
@@ -70,8 +73,10 @@ class ImporterController extends Controller
 
 	public function storeClosedSchools()
 	{
+		$data_source = DataSource::where('name', 'closed_schools')
+			->first();
 
-		$closed_school = new ScrapingClosedSchool;
+		$closed_school = new ScrapingClosedSchool($data_source);
 		$closed_school = $closed_school->start();
 		return 'done';
 	}
