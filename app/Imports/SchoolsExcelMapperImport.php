@@ -42,6 +42,7 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
 
         $latest_ver = $school->getLatestVersion();
         $school->revision_id = $latest_ver->id;
+        $school->status = $latest_ver->status;
         $school->save();
 
     }

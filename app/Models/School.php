@@ -13,12 +13,22 @@ class School extends Model
 
     public function revisions()
     {
-        return $this->hasMany(SchoolRevision::class);
+        return $this->hasMany(SchoolRevision::class)->latest();
     }
 
     public function getLatestVersion(){
     	
 	  return $revision = $this->revisions()->orderByRaw("FIELD(status , 'closed', 'active', 'revoked')")->latest()->first();
     }
+
+
+
+    public function getSchool()
+    {
+        return $this->belongsTo(SchoolRevision::class, 'revision_id');
+    }
+
+
+
 
 }

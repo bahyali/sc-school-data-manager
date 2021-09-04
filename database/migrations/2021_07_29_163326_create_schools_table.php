@@ -19,7 +19,7 @@ class CreateSchoolsTable extends Migration
             // $table->unsignedBigInteger('revision_id')->nullable();
             // $table->foreign('revision_id')->references('id')->on('school_revisions');
 
-            $table->date('last_update')->nullable();            
+            $table->date('last_update')->nullable();                        
 
             $table->timestamps();
         });

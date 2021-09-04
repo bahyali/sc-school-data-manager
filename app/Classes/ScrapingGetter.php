@@ -8,20 +8,6 @@ use App\Models\SchoolRevision;
 
 class ScrapingGetter {
 
-    public static function storeScrapingSchool($array, $status){
-        $array['status'] = $status;
-        $school = School::updateOrCreate(['number'=>$array['number']]);
-        $array['school_id'] = $school->id;
-        SchoolRevision::create($array);
-
-        $latest_ver = $school->getLatestVersion();
-        $school->revision_id = $latest_ver->id;
-        $school->save();
-
-    }
-
-
-
     public static function getSchoolNumber($string){
         $string = rtrim($string);
         preg_match_all("/\d+/", $string, $new_string);
@@ -45,4 +31,20 @@ class ScrapingGetter {
         return $revoked_date;
 
     }
+
+
+
+    public static function storeScrapingSchool($array, $status){
+        $array['status'] = $status;
+        $school = School::updateOrCreate(['number'=>$array['number']]);
+        $array['school_id'] = $school->id;
+        SchoolRevision::create($array);
+
+        $latest_ver = $school->getLatestVersion();
+        $school->revision_id = $latest_ver->id;
+        $school->status = $latest_ver->status;
+        $school->save();
+
+    }
+    
 }

@@ -31,7 +31,7 @@ class ImporterController extends Controller
 
      	$data_source->update(['last_sync' => Carbon::now()]);
 
-     	if($data_source->checksum == $file_checksum ) return 'this file uploade already!';
+     	if($data_source->checksum == $file_checksum ) return 'this file uploaded already!';
      	else $data_source->update(['checksum' => $file_checksum]);
      	// return $request->school_status;
      	
