@@ -6,12 +6,14 @@ use Symfony\Component\DomCrawler\Crawler;
 use App\Models\School;
 use Storage;
 use App\Models\SchoolRevision;
+use App\Classes\ScrapingGetter;
 
 
 
-class ScrapingRevokedSchool
+class ScrapingRevokedSchool extends ScrapingGetter
 {
 
+	protected $status = 'revoked';
 	protected $data_source;
 	protected $url;
 
@@ -20,6 +22,7 @@ class ScrapingRevokedSchool
 		$this->data_source = $data_source;
 		$this->url = $data_source['configuration']['url'];
 	}
+
 
 	public function start()
 	{
@@ -71,35 +74,8 @@ class ScrapingRevokedSchool
 				'data_source_id' => $this->data_source->id
 			];
 
-			return $this->storeRevokedSchool($revoked_school);
+			return $this->storeScrapingSchool($revoked_school, $this->status);
 		});
-	}
-
-
-
-	public function getSchoolName($string)
-	{
-		$name = explode('School No', $string);
-		$name = str_replace(',', '', $name[0]);
-		return rtrim($name);
-	}
-
-
-
-	public function getSchoolNumber($string)
-	{
-		$string = rtrim($string);
-		preg_match_all("/\d+/", $string, $new_string);
-		$number = end($new_string[0]);
-		return $number;
-	}
-
-
-	public function getRevokedDate($string)
-	{
-		$revoked_date = explode('revoked effective', $string);
-		$revoked_date = trim($revoked_date[1]);
-		return $revoked_date;
 	}
 
 
@@ -123,17 +99,5 @@ class ScrapingRevokedSchool
 			$owner_business = $owner_business[1];
 			return trim($owner_business);
 		} else return '';
-	}
-
-	public function storeRevokedSchool($array)
-	{
-		$array['status'] = 'revoked';
-		$school = School::updateOrCreate(['number' => $array['number']]);
-		$array['school_id'] = $school->id;
-		SchoolRevision::create($array);
-
-		$latest_ver = $school->getLatestVersion();
-		$school->revision_id = $latest_ver->id;
-		$school->save();
 	}
 }
