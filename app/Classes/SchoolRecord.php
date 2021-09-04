@@ -3,6 +3,8 @@
 namespace App\Classes;
 
 use App\Models\School;
+use App\Models\DataSource;
+
 use Exception;
 
 class SchoolRecord implements ISchoolRecord
@@ -22,6 +24,7 @@ class SchoolRecord implements ISchoolRecord
     public function addSchool($school_number)
     {
         $this->school = $this->model->updateOrCreate(['number' => $school_number]);
+        
         return $this;
     }
 
@@ -51,7 +54,7 @@ interface ISchoolRecord
 {
     function getSchool($id);
 
-    function addRevision($revision, $data_source);
+    function addRevision($revision, DataSource $data_source);
 
     function addSchool($school_number);
 }
