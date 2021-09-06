@@ -5,10 +5,11 @@ namespace App\Imports;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
 
 use Illuminate\Support\Facades\App;
 use App\Classes\SchoolRecord;
-
 
 
 class SchoolsExcelMapperImport implements ToModel, WithStartRow
@@ -30,10 +31,12 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
         return 2;
     }
 
+
     // TODO convert to MAP since we don't need models anymore.
     public function model(array $row)
     {
-        $array = [];        
+        $array = [];
+
         // Apply column overrides
         if (count($this->configuration['overrides']) > 0)
             foreach ($this->configuration['overrides'] as $key => $value)
@@ -41,12 +44,28 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
 
         // Map
         foreach ($this->configuration['mapping'] as $key => $value) {
-            $array[$key] = $row[$value];
+            $row_value = $row[$value];
+
+            // is it a date?
+            if ($row_value && in_array($key, $this->configuration['date_columns'])) {
+                $array[$key] = $this->transformDate($row_value);
+            } else {
+                $array[$key] = $row_value;
+            }
         }
 
         $record = App::make(SchoolRecord::class);
 
         $school = $record->addSchool($array['number']);
         $school->addRevision($array, $this->data_source);
+    }
+
+    private function transformDate($value, $format = 'Y-m-d')
+    {
+        try {
+            return \Carbon\Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value));
+        } catch (\ErrorException $e) {
+            return \Carbon\Carbon::createFromFormat($format, $value);
+        }
     }
 }
