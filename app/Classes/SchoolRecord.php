@@ -28,16 +28,19 @@ class SchoolRecord implements ISchoolRecord
         return $this;
     }
 
-    public function addRevision($revision, $data_source)
+    public function addRevision($revision, $data_source, $remix = true)
     {
         if (!$this->school)
             throw new Exception("We need a school to create a revision!");
 
         $revision['data_source_id'] = $data_source->id;
-
-        $revision_model = $this->school->revisions()->firstOrCreate($revision);
+        $hash = md5(serialize($revision));
+        $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
         $this->school->lastRevision()->associate($revision_model);
         $this->school->save();
+
+        if ($remix)
+            $this->remix();
 
         return $this;
     }
@@ -54,6 +57,10 @@ class SchoolRecord implements ISchoolRecord
         return $this->school;
     }
 
+    public function setSchool(School $school)
+    {
+        $this->school = $school;
+    }
 
     public function remix()
     {
@@ -66,7 +73,7 @@ interface ISchoolRecord
 {
     function fetchSchool($id);
 
-    function addRevision($revision, DataSource $data_source);
+    function addRevision($revision, DataSource $data_source, $remix = true);
 
     function addSchool($school_number);
 }
