@@ -34,3 +34,5 @@ Route::post('/import/excel', [App\Http\Controllers\ImporterController::class, 'e
 Route::get('/crawl/revoked', [App\Http\Controllers\ImporterController::class, 'storeRevokedSchools'])->name('storeRevokedSchools');
 
 Route::get('/crawl/closed', [App\Http\Controllers\ImporterController::class, 'storeClosedSchools'])->name('storeClosedSchools');
+
+Route::get('/remix/all', [App\Http\Controllers\ImporterController::class, 'remixAllSchools'])->name('storeRevokedSchools');

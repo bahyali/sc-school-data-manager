@@ -7,7 +7,10 @@ use App\Models\DataSource;
 use App\Imports\FirstSheetImporter;
 use App\Classes\ScrapingRevokedSchool;
 use App\Classes\ScrapingClosedSchool;
+use App\Classes\SchoolRecord;
+use App\Models\School;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\App;
 
 class ImporterController extends Controller
 {
@@ -47,8 +50,15 @@ class ImporterController extends Controller
 
 
 
-	public function importFromCrawler($data_source)
+	public function remixAllSchools()
 	{
+		foreach (School::lazy() as $school) {
+			$school_record = App::make(SchoolRecord::class);
+			$school_record->setSchool($school);
+
+			$school_record->remix();
+		}
+		return "done";
 	}
 
 
