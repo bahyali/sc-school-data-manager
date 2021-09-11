@@ -4,52 +4,64 @@ namespace App\Classes;
 
 use Symfony\Component\DomCrawler\Crawler;
 use App\Classes\ScrapingGetter;
+use Carbon\Carbon;
+
 
 
 
 class ScrapingClosedSchool extends ScrapingGetter
 {
-	protected $status = 'closed';
 
 	public function start()
 	{
 
-		$client = new \GuzzleHttp\Client();
-		$res = $client->request('GET', $this->url);
-		$html = '' . $res->getBody();
-
-		$crawler = new Crawler($html);
+		$crawler = $this->newCrawler();
 		$nodeValues = $crawler->filter('#right_column ul')->first()->nextAll()->filter('li');
+		return $this->scrapeAndStore($nodeValues);
 
-		$nodeValues->each(function ($node) {
+	}
 
-			$tags = explode("\n", strip_tags($node->html()));
-			// $tags = array_filter($tags);
-			$tags = array_filter($tags, function ($v) {
-				return strlen($v) > 2;
+	public function scrapeAndStore($nodeValues)
+	{
+
+		$arr = [];
+		$nodeValues->each(function ($node) use (&$arr) {$arr[] = $node->html();});
+		$html_checksum = md5(json_encode($arr)); 
+
+		if ($this->data_source->checksum == $html_checksum){
+			// return 'This page scrapped before!';
+		}
+
+
+
+
+		else{
+			$nodeValues->each(function ($node) {
+
+				$tags = explode("\n", strip_tags($node->html()));
+				// $tags = array_filter($tags);
+				$tags = array_filter($tags, function ($v) {
+					return strlen($v) > 2;
+				});
+				$tags = array_values($tags);
+
+				$scraper_school = [];
+				$scraper_school['name'] = $this->getSchoolName($tags[0]);
+				$scraper_school['number'] = $this->getSchoolNumber($tags[0]);
+				$scraper_school['address_line_1'] = trim($tags[1]);
+				$scraper_school['address_line_2'] = (count($tags) > 3) ? (str_contains($tags[2], 'Principal')) ? '' : trim($tags[2]) : '';
+				$scraper_school['address_line_3'] = (count($tags) > 5) ? trim($tags[3]) : '';
+				$scraper_school['principal_name'] = $this->getPrincipalName($node->text());
+				$scraper_school['owner_business'] = $this->getOwnerBusiness($node->text());
+
+				return $this->storeScrapingSchool($scraper_school);
 			});
-			$tags = array_values($tags);
-
-			$name = $this->getSchoolName($tags[0]);
-			$number = $this->getSchoolNumber($tags[0]);
-			$address_line_1 = trim($tags[1]);
-			$address_line_2 = (count($tags) > 3) ? (str_contains($tags[2], 'Principal')) ? '' : trim($tags[2]) : '';
-			$address_line_3 = (count($tags) > 5) ? trim($tags[3]) : '';
-			$principal_name = $this->getPrincipalName($node->text());
-			$owner_business = $this->getOwnerBusiness($node->text());
-
-			$closed_school = [
-				'name' => $name,
-				'number' => $number,
-				'address_line_1' => $address_line_1,
-				'address_line_2' => $address_line_2,
-				'address_line_3' => $address_line_3,
-				'principal_name' => $principal_name,
-				'owner_business' => $owner_business,
-				'data_source_id' => $this->data_source->id
-			];
-			return $this->storeScrapingSchool($closed_school, $this->status);
-		});
+		}
+		
+		$this->data_source->update([
+			'last_sync' => Carbon::now(),
+			'checksum' => $html_checksum
+		]);
 	}
 
 

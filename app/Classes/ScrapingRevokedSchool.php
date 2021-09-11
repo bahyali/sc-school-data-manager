@@ -4,65 +4,71 @@ namespace App\Classes;
 
 use Symfony\Component\DomCrawler\Crawler;
 use App\Classes\ScrapingGetter;
+use Carbon\Carbon;
+
 
 
 
 class ScrapingRevokedSchool extends ScrapingGetter
 {
-	protected $status = 'revoked';
 
 	public function start()
 	{
 
-		$client = new \GuzzleHttp\Client();
-		$res = $client->request('GET', $this->url);
-		$html = '' . $res->getBody();
-
-		$crawler = new Crawler($html);
-		// var_dump($crawler);
+		$crawler = $this->newCrawler();
 		$nodeValues = $crawler->filter('#right_column ol li');
+		return $this->scrapeAndStore($nodeValues);
 
-		// dd($nodeValues);
-
-
-		$nodeValues->each(function ($node) {
-
-			$tags = explode("\n", strip_tags($node->html()));
-			$tags = array_filter($tags);
-
-			$name = $this->getSchoolName($tags[0]);
-			$number = $this->getSchoolNumber($tags[0]);
-			$address_line_1 = trim($tags[1]);
-			$address_line_2 = trim($tags[2]);
-			$revoked_date = $this->getRevokedDate($node->text());
-			$principal_name = '';
-			$owner_business = '';
-
-			if (count($tags) == 6) {
-				$principal_name = $this->getPrincipalName($tags[3]);
-				$owner_business = $this->getOwnerBusiness($tags[4]);
-			}
+	}
 
 
-			if (count($tags) == 5) {
-				$principal_name = $this->getPrincipalName($tags[3]);
-				$owner_business = $this->getOwnerBusiness($tags[3]);
-			}
+	public function scrapeAndStore($nodeValues){
 
 
-			$revoked_school = [
-				'name' => $name,
-				'number' => $number,
-				'address_line_1' => $address_line_1,
-				'address_line_2' => $address_line_2,
-				'principal_name' => $principal_name,
-				'owner_business' => $owner_business,
-				'revoked_date' => $revoked_date,
-				'data_source_id' => $this->data_source->id
-			];
+		$arr = [];
+		$nodeValues->each(function ($node) use (&$arr) {$arr[] = $node->html();});
+		$html_checksum = md5(json_encode($arr)); 
 
-			return $this->storeScrapingSchool($revoked_school, $this->status);
-		});
+
+		if ($this->data_source->checksum == $html_checksum){
+			// return 'This page scrapped before!';
+		}
+
+		else{
+			$nodeValues->each(function ($node) {
+
+				$tags = explode("\n", strip_tags($node->html()));
+				$tags = array_filter($tags);
+
+				$scraper_school = [];
+				$scraper_school['name'] = $this->getSchoolName($tags[0]);
+				$scraper_school['number'] = $this->getSchoolNumber($tags[0]);
+				$scraper_school['address_line_1'] = trim($tags[1]);
+				$scraper_school['address_line_2'] = trim($tags[2]);
+				$scraper_school['revoked_date'] = $this->getRevokedDate($node->text());
+				$scraper_school['principal_name'] = '';
+				$scraper_school['owner_business'] = '';
+
+				if (count($tags) == 6) {
+					$scraper_school['principal_name'] = $this->getPrincipalName($tags[3]);
+					$scraper_school['owner_business'] = $this->getOwnerBusiness($tags[4]);
+				}
+
+
+				if (count($tags) == 5) {
+					$scraper_school['principal_name'] = $this->getPrincipalName($tags[3]);
+					$scraper_school['owner_business'] = $this->getOwnerBusiness($tags[3]);
+				}
+
+				return $this->storeScrapingSchool($scraper_school);
+			});
+		}
+
+
+		$this->data_source->update([
+			'last_sync' => Carbon::now(),
+			'checksum' => $html_checksum
+		]);
 	}
 
 
