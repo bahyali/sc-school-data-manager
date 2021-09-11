@@ -41,7 +41,7 @@ class DataMixer
         $remix = $this->mix($latest_revisions)
             ->toArray();
 
-        $school_record->addRevision($remix, $this->data_source);
+        $school_record->addRevision($remix, $this->data_source, false);
 
         return $remix;
     }
@@ -70,8 +70,8 @@ class DataMixer
             'closed'
         ];
 
-        $data_sources = $school->dataSources->pluck('id');
-
+        $data_sources = $school->dataSources->pluck('id');        
+     
         // mixed revision from each data source
         $latest_revisions = $data_sources->map(function ($ds_id) use ($school) {
             $revisions_by_ds = $school->revisions()

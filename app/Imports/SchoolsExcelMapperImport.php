@@ -54,6 +54,9 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
             }
         }
 
+        if ($array['number'] == null)
+            return;
+
         $record = App::make(SchoolRecord::class);
 
         $school = $record->addSchool($array['number']);
