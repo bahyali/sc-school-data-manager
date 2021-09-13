@@ -21,16 +21,22 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::post('/importing', [App\Http\Controllers\ImporterController::class, 'importing'])->name('importing');
 
+Route::apiResources([
+    'data-sources' => App\Http\Controllers\API\DataSourceController::class
+]);
 
-Route::get('/schools/{status?}', [App\Http\Controllers\API\SchoolController::class, 'getSchools'])->name('getSchools');
-Route::get('/schools-revisions', [App\Http\Controllers\API\SchoolController::class, 'getSchoolsRevisions'])->name('getSchoolsRevisions');
+Route::get('/schools/{id}', [App\Http\Controllers\API\SchoolController::class, 'getOneSchool'])
+    ->name('getOneSchool');
+
+Route::get('/schools/{status?}', [App\Http\Controllers\API\SchoolController::class, 'getSchools'])
+    ->name('getSchools');
+
+Route::get('/schools-revisions', [App\Http\Controllers\API\SchoolController::class, 'getSchoolsRevisions'])
+    ->name('getSchoolsRevisions');
 
 
-Route::get('/school/{id}', [App\Http\Controllers\API\SchoolController::class, 'getOneSchool'])->name('getOneSchool');
 
 
 // Route::get('/schools/{status}', [App\Http\Controllers\API\SchoolController::class, 'getActiveSchools'])->name('getActiveSchools');
 // Route::get('/schools/revoked', [App\Http\Controllers\API\SchoolController::class, 'getRevokedSchools'])->name('getRevokedSchools');
 // Route::get('/schools/closed', [App\Http\Controllers\API\SchoolController::class, 'getClosedSchools'])->name('getClosedSchools');
-
-

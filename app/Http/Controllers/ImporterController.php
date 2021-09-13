@@ -76,6 +76,11 @@ class ImporterController extends Controller
 
 		$revoked_school->start();
 
+		$data_source->update([
+			'last_sync' => Carbon::now()
+		]);
+
+
 		return 'done';
 	}
 
@@ -89,6 +94,10 @@ class ImporterController extends Controller
 		$closed_school = new ScrapingClosedSchool($data_source);
 
 		$closed_school->start();
+
+		$data_source->update([
+			'last_sync' => Carbon::now()
+		]);
 
 		return 'done';
 	}
