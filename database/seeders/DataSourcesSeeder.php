@@ -79,6 +79,9 @@ class DataSourcesSeeder extends Seeder
             [
                 'name'  => 'revoked_schools',
                 'configuration' => [
+                    'overrides' => [
+                        'status' => 'revoked'
+                    ],
                     'url' => 'http://www.edu.gov.on.ca/eng/general/elemsec/privsch/revoked.html#1920'
                 ],
                 'resource' => 'html',
@@ -87,6 +90,9 @@ class DataSourcesSeeder extends Seeder
             [
                 'name'  => 'closed_schools',
                 'configuration' => [
+                    'overrides' => [
+                        'status' => 'closed'
+                    ],
                     'url' => 'http://www.edu.gov.on.ca/eng/general/elemsec/privsch/closed.html#2021',
                 ],
                 'resource' => 'html',

@@ -25,9 +25,12 @@ Route::get('/gui/upload', function () {
 });
 
 
-Route::get('/active/upload', function () {
-    return view('active_upload');
-});
+// Route::get('/active/upload', function () {
+//     return view('active_upload');
+// });
+
+Route::get('/active/upload', [App\Http\Controllers\ImporterController::class, 'test'])->name('test');
+
 
 Route::post('/import/excel', [App\Http\Controllers\ImporterController::class, 'excelImporting'])->name('excelImporting');
 

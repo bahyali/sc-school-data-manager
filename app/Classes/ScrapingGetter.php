@@ -4,6 +4,8 @@ namespace App\Classes;
 
 use App\Classes\SchoolRecord;
 use Illuminate\Support\Facades\App;
+use Symfony\Component\DomCrawler\Crawler;
+
 
 
 class ScrapingGetter
@@ -40,11 +42,23 @@ class ScrapingGetter
         return $revoked_date;
     }
 
-    public function storeScrapingSchool($array, $status)
+    public function storeScrapingSchool($array)
     {
         $record = App::make(SchoolRecord::class);
-        $array['status'] = $status;
+
+        $array['data_source_id'] = $this->data_source->id;
+        $array['status'] = $this->data_source['configuration']['overrides']['status'];
+        
         $school = $record->addSchool($array['number']);
         $school->addRevision($array, $this->data_source);
+    }
+
+
+    public function newCrawler()
+    {
+        $client = new \GuzzleHttp\Client();
+        $res = $client->request('GET', $this->url);
+        $html = '' . $res->getBody();
+        return $crawler = new Crawler($html);
     }
 }
