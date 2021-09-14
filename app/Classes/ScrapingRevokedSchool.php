@@ -27,6 +27,8 @@ class ScrapingRevokedSchool extends ScrapingGetter
 
 		$arr = [];
 		$nodeValues->each(function ($node) use (&$arr) {$arr[] = $node->html();});
+		// $arr = $nodeValues->map(function ($node) { return $node->html();});
+		
 		$html_checksum = md5(json_encode($arr)); 
 
 
