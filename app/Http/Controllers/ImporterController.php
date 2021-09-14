@@ -76,6 +76,7 @@ class ImporterController extends Controller
 			->first();
 		$revoked_school = new ScrapingRevokedSchool($data_source);
 		$revoked_school->start();
+
 		return 'done';
 	}
 
@@ -87,6 +88,7 @@ class ImporterController extends Controller
 			->first();
 		$closed_school = new ScrapingClosedSchool($data_source);
 		$closed_school->start();
+
 		return 'done';
 	}
 
