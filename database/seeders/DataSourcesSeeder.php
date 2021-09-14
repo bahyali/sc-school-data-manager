@@ -18,6 +18,7 @@ class DataSourcesSeeder extends Seeder
         $defined_types = [
             [
                 'name'  => 'private_schools_ontario',
+                'title' => 'Private Schools Contact Information',
                 'configuration' => [
                     'overrides' => [
                         'status' => 'active'
@@ -47,6 +48,7 @@ class DataSourcesSeeder extends Seeder
 
             [
                 'name'  => 'onsis_all_schools',
+                'title' => 'ONSIS Schools Sheet',
                 'configuration' => [
                     'overrides' => [],
                     'mapping' => [
@@ -78,6 +80,7 @@ class DataSourcesSeeder extends Seeder
             ],
             [
                 'name'  => 'revoked_schools',
+                'title' => 'Revoked Schools',
                 'configuration' => [
                     'overrides' => [
                         'status' => 'revoked'
@@ -89,6 +92,7 @@ class DataSourcesSeeder extends Seeder
             ],
             [
                 'name'  => 'closed_schools',
+                'title' => 'Closed Schools',
                 'configuration' => [
                     'overrides' => [
                         'status' => 'closed'
@@ -101,6 +105,7 @@ class DataSourcesSeeder extends Seeder
             [
                 'name'  => 'schoolcred_engine',
                 'configuration' => [],
+                'title' => 'Auto Mixer',
                 'resource' => 'auto_mixer',
                 'url' => NULL,
             ]
@@ -109,6 +114,7 @@ class DataSourcesSeeder extends Seeder
         foreach ($defined_types as $defined_type) {
             $data_source = new DataSource();
             $data_source->name = $defined_type['name'];
+            $data_source->title = $defined_type['title'];
             $data_source->configuration = $defined_type['configuration'];
             $data_source->resource = $defined_type['resource'];
             $data_source->url = $defined_type['url'];
