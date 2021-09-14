@@ -38,20 +38,20 @@ class DataMixer
         // Get latest revision from each data source sorted
         $latest_revisions = $this->getLatestRevisions($school);
 
-        $remix = $this->mix($latest_revisions)
-            ->toArray();
+        $remix = $this->mix($latest_revisions);
 
-        $school_record->addRevision($remix, $this->data_source, false);
+        if ($remix)
+            $school_record->addRevision($remix->toArray(), $this->data_source, false, true);
 
         return $remix;
     }
 
     private function clean($item, $key)
     {
-        return !($item == null || in_array($key, ['created_at', 'updated_at', 'id']));
+        return !($item == null || in_array($key, ['created_at', 'updated_at', 'id', 'hash']));
     }
 
-    private function mix(Collection $entries): Collection
+    private function mix(Collection $entries)
     {
         return $entries->reduce(function ($carry, $item) {
             if (!$carry)
@@ -70,14 +70,20 @@ class DataMixer
             'closed'
         ];
 
-        $data_sources = $school->dataSources->pluck('id');        
-     
+        $data_sources = $school->dataSources->pluck('id');
+        $lastRevision = $school->lastRevision;
+
         // mixed revision from each data source
-        $latest_revisions = $data_sources->map(function ($ds_id) use ($school) {
+        $latest_revisions = $data_sources->map(function ($ds_id) use ($school, $lastRevision) {
             $revisions_by_ds = $school->revisions()
                 ->byDataSourceId($ds_id)
-                ->oldest()
-                ->get()
+                ->oldest();
+
+            // Get latest revision and new ones only
+            if ($lastRevision)
+                $revisions_by_ds = $revisions_by_ds->where('id', '>=', $lastRevision->id);
+
+            $revisions_by_ds = $revisions_by_ds->get()
                 // clean up each row
                 ->map(function ($rev) {
                     return collect($rev->toArray())
@@ -87,9 +93,14 @@ class DataMixer
                 });
 
             // Convert to Support\Collection
-            return $this->mix($revisions_by_ds);
+            if ($revisions_by_ds)
+                return $this->mix($revisions_by_ds);
+            else
+                return null;
 
             // Sort by order of operations (closed > revoked > active)
+        })->filter(function ($revision) {
+            return $revision;
         })->sortBy(function ($revision) use ($SORT) {
             return array_search($revision->get('status'), $SORT);
         });

@@ -28,7 +28,7 @@ class SchoolRecord implements ISchoolRecord
         return $this;
     }
 
-    public function addRevision($revision, $data_source, $remix = true)
+    public function addRevision($revision, $data_source, $remix = true, $associate = false)
     {
         if (!$this->school)
             throw new Exception("We need a school to create a revision!");
@@ -36,8 +36,11 @@ class SchoolRecord implements ISchoolRecord
         $revision['data_source_id'] = $data_source->id;
         $hash = md5(serialize($revision));
         $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
-        $this->school->lastRevision()->associate($revision_model);
-        $this->school->save();
+
+        if ($associate) {
+            $this->school->lastRevision()->associate($revision_model);
+            $this->school->save();
+        }
 
         if ($remix)
             $this->remix();
