@@ -10,13 +10,8 @@ use App\Classes\ScrapingClosedSchool;
 use App\Classes\SchoolRecord;
 use App\Models\School;
 use Carbon\Carbon;
-use Symfony\Component\DomCrawler\Crawler;
-use Storage;
-use File;
-use Response;
-
-
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Storage;
 
 class ImporterController extends Controller
 {
@@ -55,7 +50,7 @@ class ImporterController extends Controller
 		return $response;
 	}
 
-	
+
 	public function remixAllSchools()
 	{
 		foreach (School::lazy() as $school) {
