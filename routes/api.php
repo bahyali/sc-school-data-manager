@@ -27,6 +27,7 @@ Route::get('/schools-revisions', [App\Http\Controllers\API\SchoolController::cla
 
 
 Route::get('/school/{id}', [App\Http\Controllers\API\SchoolController::class, 'getOneSchool'])->name('getOneSchool');
+Route::post('/date-school', [App\Http\Controllers\API\SchoolController::class, 'getSchoolByDate'])->name('getSchoolByDate');
 
 
 // Route::get('/schools/{status}', [App\Http\Controllers\API\SchoolController::class, 'getActiveSchools'])->name('getActiveSchools');

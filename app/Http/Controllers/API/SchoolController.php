@@ -5,6 +5,8 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\School;
+use App\Models\SchoolRevision;
+use App\Models\DataSource;
 
 
 class SchoolController extends Controller
@@ -32,6 +34,15 @@ class SchoolController extends Controller
 	  	$school_details = $school->getSchool;
 	  	$school_revisions = $school->revisions;
 	 	return response()->json(['school' => $school_details, 'school_revisions' => $school_revisions]);
+    }
+
+
+
+    public function getSchoolByDate(Request $request){
+    	// return $school_id;
+    	$mixer_source = DataSource::where('name', 'schoolcred_engine')->first();
+    	return$school_revisions = SchoolRevision::where('data_source_id', $mixer_source->id)->where('created_at', '>=', $request->date)->get();
+	  	return $school = School::where('updated_at', '>=', $request->date)->get();
     }
 
 

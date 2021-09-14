@@ -29,7 +29,7 @@ Route::get('/gui/upload', function () {
 //     return view('active_upload');
 // });
 
-Route::get('/active/upload', [App\Http\Controllers\ImporterController::class, 'test'])->name('test');
+Route::get('/ontario/upload', [App\Http\Controllers\ImporterController::class, 'ontarioImporting'])->name('ontarioImporting');
 
 
 Route::post('/import/excel', [App\Http\Controllers\ImporterController::class, 'excelImporting'])->name('excelImporting');
@@ -38,4 +38,4 @@ Route::get('/crawl/revoked', [App\Http\Controllers\ImporterController::class, 's
 
 Route::get('/crawl/closed', [App\Http\Controllers\ImporterController::class, 'storeClosedSchools'])->name('storeClosedSchools');
 
-Route::get('/remix/all', [App\Http\Controllers\ImporterController::class, 'remixAllSchools'])->name('storeRevokedSchools');
+Route::get('/remix/all', [App\Http\Controllers\ImporterController::class, 'remixAllSchools'])->name('remixAllSchools');

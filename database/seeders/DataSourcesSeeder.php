@@ -22,6 +22,7 @@ class DataSourcesSeeder extends Seeder
                     'overrides' => [
                         'status' => 'active'
                     ],
+                    'url' => 'https://data.ontario.ca/dataset/7a049187-cf29-4ffe-9028-235b95c61fa3/resource/6545c5ec-a5ce-411c-8ad5-d66363da8891/download/private_schools_contact_information_august_2021_en.xlsx',
                     'mapping' => [
                         'name' => 0,
                         'number' => 1,
