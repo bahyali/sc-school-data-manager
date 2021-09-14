@@ -19,7 +19,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 
-Route::post('/importing', [App\Http\Controllers\ImporterController::class, 'importing'])->name('importing');
+Route::post('/importing', [App\Http\Controllers\ImporterController::class, 'excelImporting'])->name('importing');
 
 Route::apiResources([
     'data-sources' => App\Http\Controllers\API\DataSourceController::class
@@ -34,6 +34,8 @@ Route::get('/schools/{status?}', [App\Http\Controllers\API\SchoolController::cla
 Route::get('/schools-revisions', [App\Http\Controllers\API\SchoolController::class, 'getSchoolsRevisions'])
     ->name('getSchoolsRevisions');
 
+Route::post('/crawl/{id}', [App\Http\Controllers\ImporterController::class, 'crawlSchoolById'])
+    ->name('crawlSchoolById');
 
 
 

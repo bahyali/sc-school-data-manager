@@ -26,9 +26,11 @@ class ImporterController extends Controller
 
 		$file_checksum = md5_file(request()->file('schools_file'));
 
-		if (!$data_source->checksum == $file_checksum){
-			// return 'This file was uploaded before!';
+		if ($data_source->checksum !== $file_checksum) {
 			$this->importFromExcel($data_source, $request->file('schools_file'));
+			$response = 'File was uploaded & processed successfully!';
+		} else {
+			$response = 'This file was uploaded before!';
 		}
 
 		// If imported successfully update metadata
@@ -37,7 +39,7 @@ class ImporterController extends Controller
 			'checksum' => $file_checksum
 		]);
 
-		return 'done';
+		return $response;
 	}
 
 
@@ -65,7 +67,25 @@ class ImporterController extends Controller
 	}
 
 
+	public function crawlSchoolById($id)
+	{
+		$data_source = DataSource::findOrFail($id);
 
+		$factory = [
+			'revoked_schools' => ScrapingRevokedSchool::class,
+			'closed_schools' => ScrapingClosedSchool::class
+		];
+
+		$ds_class = new $factory[$data_source->name]($data_source);
+
+		$ds_class->start();
+
+		$data_source->update([
+			'last_sync' => Carbon::now()
+		]);
+
+		return 'Crawled Successfully!';
+	}
 
 	public function storeRevokedSchools()
 	{
@@ -113,22 +133,22 @@ class ImporterController extends Controller
 
 		// $file = file_get_contents($url);
 		// Storage::disk('local')->put('ontario.xlsx', $file);
-$contents = Storage::get('ontario.xlsx');
+		$contents = Storage::get('ontario.xlsx');
 
-$request = new \Illuminate\Http\Request();
+		$request = new \Illuminate\Http\Request();
 
-$request->replace(['data_src_name' => 'private_schools_ontario', 'schools_file' => $contents]);
+		$request->replace(['data_src_name' => 'private_schools_ontario', 'schools_file' => $contents]);
 
-$file_checksum = md5_file($contents);
-dd($request->all());
+		$file_checksum = md5_file($contents);
+		dd($request->all());
 
-$this->excelImporting($request);
-dd($request->schools_file);
-		return'done';
+		$this->excelImporting($request);
+		dd($request->schools_file);
+		return 'done';
 
 
 		// return response()->download($tempImage, $filename);
-		
+
 		// $client = new \GuzzleHttp\Client();
 		// $url = 'http://www.edu.gov.on.ca/eng/general/elemsec/privsch/revoked.html';
 		// $res = $client->request('GET', $url);
@@ -142,7 +162,4 @@ dd($request->schools_file);
 		// 	return $checksum;
 
 	}
-
-
 }
-
