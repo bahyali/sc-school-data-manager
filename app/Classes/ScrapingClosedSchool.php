@@ -18,24 +18,20 @@ class ScrapingClosedSchool extends ScrapingGetter
 		$crawler = $this->newCrawler();
 		$nodeValues = $crawler->filter('#right_column ul')->first()->nextAll()->filter('li');
 		return $this->scrapeAndStore($nodeValues);
-
 	}
 
 	public function scrapeAndStore($nodeValues)
 	{
 
 		$arr = [];
-		$nodeValues->each(function ($node) use (&$arr) {$arr[] = $node->html();});
-		$html_checksum = md5(json_encode($arr)); 
+		$nodeValues->each(function ($node) use (&$arr) {
+			$arr[] = $node->html();
+		});
+		$html_checksum = md5(json_encode($arr));
 
-		if ($this->data_source->checksum == $html_checksum){
+		if ($this->data_source->checksum == $html_checksum) {
 			// return 'This page scrapped before!';
-		}
-
-
-
-
-		else{
+		} else {
 			$nodeValues->each(function ($node) {
 
 				$tags = explode("\n", strip_tags($node->html()));
@@ -57,7 +53,7 @@ class ScrapingClosedSchool extends ScrapingGetter
 				return $this->storeScrapingSchool($scraper_school);
 			});
 		}
-		
+
 		$this->data_source->update([
 			'last_sync' => Carbon::now(),
 			'checksum' => $html_checksum

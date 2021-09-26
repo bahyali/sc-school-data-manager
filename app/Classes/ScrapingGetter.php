@@ -48,7 +48,7 @@ class ScrapingGetter
 
         $array['data_source_id'] = $this->data_source->id;
         $array['status'] = $this->data_source['configuration']['overrides']['status'];
-        
+
         $school = $record->addSchool($array['number']);
         $school->addRevision($array, $this->data_source);
     }

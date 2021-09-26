@@ -18,25 +18,25 @@ class ScrapingRevokedSchool extends ScrapingGetter
 		$crawler = $this->newCrawler();
 		$nodeValues = $crawler->filter('#right_column ol li');
 		return $this->scrapeAndStore($nodeValues);
-
 	}
 
 
-	public function scrapeAndStore($nodeValues){
+	public function scrapeAndStore($nodeValues)
+	{
 
 
 		$arr = [];
-		$nodeValues->each(function ($node) use (&$arr) {$arr[] = $node->html();});
+		$nodeValues->each(function ($node) use (&$arr) {
+			$arr[] = $node->html();
+		});
 		// $arr = $nodeValues->map(function ($node) { return $node->html();});
-		
-		$html_checksum = md5(json_encode($arr)); 
+
+		$html_checksum = md5(json_encode($arr));
 
 
-		if ($this->data_source->checksum == $html_checksum){
+		if ($this->data_source->checksum == $html_checksum) {
 			// return 'This page scrapped before!';
-		}
-
-		else{
+		} else {
 			$nodeValues->each(function ($node) {
 
 				$tags = explode("\n", strip_tags($node->html()));
