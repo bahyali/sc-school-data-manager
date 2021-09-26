@@ -5,49 +5,52 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\School;
-use App\Models\SchoolRevision;
 use App\Models\DataSource;
-
+use Carbon\Carbon;
 
 class SchoolController extends Controller
 {
 
 
-    public function getSchools($status = NULL){
-	  	if ($status) $schools = School::where('status', $status)->with('getSchool')->get();
-	  	else $schools = School::with('getSchool')->get();
+	public function getSchools($status = NULL)
+	{
+		if ($status) $schools = School::where('status', $status)->with('getSchool')->get();
+		else $schools = School::with('getSchool')->get();
 
-	 	return response()->json(['schools' => $schools]);
-    }
-
-
-    public function getSchoolsRevisions(){
-	  	$schools = School::with('revisions')->get();
-	 	return response()->json(['schools' => $schools]);
-    }
+		return response()->json($schools);
+	}
 
 
-
-    public function getOneSchool($school_id){
-    	// return $school_id;
-	  	$school = School::find($school_id);
-	  	$school_details = $school->getSchool;
-	  	$school_revisions = $school->revisions;
-	 	return response()->json(['school' => $school_details, 'school_revisions' => $school_revisions]);
-    }
+	public function getSchoolsRevisions()
+	{
+		$schools = School::with('revisions')->get();
+		return response()->json($schools);
+	}
 
 
-
-    public function getSchoolByDate(Request $request){
-    	// return $school_id;
-    	$mixer_source = DataSource::where('name', 'schoolcred_engine')->first();
-    	return$school_revisions = SchoolRevision::where('data_source_id', $mixer_source->id)->where('created_at', '>=', $request->date)->get();
-	  	return $school = School::where('updated_at', '>=', $request->date)->get();
-    }
+	public function getOneSchool($school_id)
+	{
+		$school = School::with(['revisions', 'revisions.dataSource'])->find($school_id);
+		return response()->json($school);
+	}
 
 
-   
+	public function getSchoolByDate(Request $request)
+	{
+		$date = $request->date ? Carbon::parse($request->date) : Carbon::parse('1990-04-14');
 
+		$mixer_source = DataSource::where('name', 'schoolcred_engine')
+			->first();
 
-
+		// TODO move this inside the model
+		return School::with(['revisions' => function ($query) use ($mixer_source, $date) {
+			$query
+				->where('data_source_id', $mixer_source->id)
+				->where('created_at', '>=', $date)
+				->latest();
+				// ->take(1);
+		}])
+			->where('updated_at', '>=', $date)
+			->get();
+	}
 }
