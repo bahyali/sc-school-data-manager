@@ -25,9 +25,6 @@ Route::apiResources([
     'data-sources' => App\Http\Controllers\API\DataSourceController::class
 ]);
 
-Route::get('/schools/{id}', [App\Http\Controllers\API\SchoolController::class, 'getOneSchool'])
-    ->name('getOneSchool');
-
 Route::get('/schools/{status?}', [App\Http\Controllers\API\SchoolController::class, 'getSchools'])
     ->name('getSchools');
 
