@@ -71,17 +71,17 @@ class DataMixer
         ];
 
         $data_sources = $school->dataSources->pluck('id');
-        $lastRevision = $school->lastRevision;
+        $last_revision_id = $school->revision_id;
 
         // mixed revision from each data source
-        $latest_revisions = $data_sources->map(function ($ds_id) use ($school, $lastRevision) {
+        $latest_revisions = $data_sources->map(function ($ds_id) use ($school, $last_revision_id) {
             $revisions_by_ds = $school->revisions()
                 ->byDataSourceId($ds_id)
                 ->oldest();
 
             // Get latest revision and new ones only
-            if ($lastRevision)
-                $revisions_by_ds = $revisions_by_ds->where('id', '>=', $lastRevision->id);
+            if ($last_revision_id)
+                $revisions_by_ds = $revisions_by_ds->where('id', '>=', $last_revision_id);
 
             $revisions_by_ds = $revisions_by_ds->get()
                 // clean up each row
