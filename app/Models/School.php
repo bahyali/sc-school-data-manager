@@ -14,7 +14,7 @@ class School extends Model
 
     public function revisions()
     {
-        return $this->hasMany(SchoolRevision::class)->latest();
+        return $this->hasMany(SchoolRevision::class);
     }
 
     public function lastRevision()
