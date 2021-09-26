@@ -34,6 +34,10 @@ class SchoolRecord implements ISchoolRecord
             throw new Exception("We need a school to create a revision!");
 
         $revision['data_source_id'] = $data_source->id;
+        
+        // Sort array to standardize fingerprint
+        ksort($revision);
+
         $hash = md5(serialize($revision));
         $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
 
