@@ -39,3 +39,9 @@ Route::get('/crawl/revoked', [App\Http\Controllers\ImporterController::class, 's
 Route::get('/crawl/closed', [App\Http\Controllers\ImporterController::class, 'storeClosedSchools'])->name('storeClosedSchools');
 
 Route::get('/remix/all', [App\Http\Controllers\ImporterController::class, 'remixAllSchools'])->name('remixAllSchools');
+
+
+
+Route::get('/conflict/{school_id}/{column?}', [App\Http\Controllers\ImporterController::class, 'getConflicts'])->name('getConflicts');
+
+

@@ -4,6 +4,8 @@ namespace App\Classes;
 
 use App\Models\School;
 use App\Models\DataSource;
+use App\Models\SchoolRevision;
+
 
 use Exception;
 
@@ -28,7 +30,7 @@ class SchoolRecord implements ISchoolRecord
         return $this;
     }
 
-    public function addRevision($revision, $data_source, $remix = true, $associate = false)
+    public function addRevision($revision, $data_source, $remix = true, $associate = false, $check_conflict = true)
     {
         if (!$this->school)
             throw new Exception("We need a school to create a revision!");
@@ -45,6 +47,11 @@ class SchoolRecord implements ISchoolRecord
             $this->school->lastRevision()->associate($revision_model);
             $this->school->save();
         }
+
+
+        if ($check_conflict && $this->school->lastRevision()->first())
+            $this->checkConflict($revision_model, $this->school->lastRevision()->first());
+        
 
         if ($remix)
             $this->remix();
@@ -73,6 +80,31 @@ class SchoolRecord implements ISchoolRecord
     {
         $mixer = DataMixer::getInstance();
         $mixer->run($this);
+    }
+
+
+    public function checkConflict($new_rev, $last_rev)
+    {
+
+        $search_columns = ['name', 'principal_name','address_line_1'];
+        $revs = SchoolRevision::select($search_columns)->whereIn('id', [$new_rev->id, $last_rev->id])->get();
+        $conflicts = [];
+        foreach ($revs as $rev) {
+            foreach ($search_columns as $search_column) {
+                if($rev[$search_column]){
+                    $conflicts[$search_column] [] = trim($rev->$search_column);
+                    $conflicts[$search_column]  = array_unique(array_values($conflicts[$search_column]));
+                }
+            }
+        }
+
+        foreach ($conflicts as $key => $value) {
+            if(count($value) == 1){unset($conflicts[$key]);}
+        }
+        if($conflicts){
+            $this->school->conflict = true;
+            $this->school->save();
+        }
     }
 }
 
