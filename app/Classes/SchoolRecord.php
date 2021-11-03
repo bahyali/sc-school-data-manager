@@ -45,6 +45,7 @@ class SchoolRecord implements ISchoolRecord
 
         if ($associate) {
             $this->school->lastRevision()->associate($revision_model);
+            $this->school->status = $revision['status'];
             $this->school->save();
         }
 
