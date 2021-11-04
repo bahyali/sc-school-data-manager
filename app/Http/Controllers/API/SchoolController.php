@@ -61,7 +61,7 @@ class SchoolController extends Controller
 
 	public function getConflictedSchools()
 	{
-		$conflicted_schools = School::where('conflict', true)->get();
+		$conflicted_schools = School::where('conflict', true)->with('lastRevision')->get();
 		return response()->json($conflicted_schools);
 
 	}
@@ -71,9 +71,11 @@ class SchoolController extends Controller
 	{
 
 		$search_columns = ['name', 'principal_name', 'address_line_1'];
-		$search_columns = ($column) ? [$column] : $search_columns;	
+		$search_columns = ($column) ? [$column] : $search_columns;
+        $schoolcred_engine_ds = DataSource::where('name', 'schoolcred_engine')->first();
 
-		$revs = SchoolRevision::select($search_columns)->where('school_id', $school_id)->where('data_source_id','!=', 24)->get();
+
+		$revs = SchoolRevision::select($search_columns)->where('school_id', $school_id)->where('data_source_id','!=', $schoolcred_engine_ds->id)->get();
 		$arr = [];
 
 		foreach ($revs as $rev) {

@@ -30,7 +30,7 @@ class School extends Model
     public function getLatestVersion()
     {
 
-        return $revision = $this->revisions()->orderByRaw("FIELD(status , 'closed', 'active', 'revoked')")->latest()->first();
+        return $this->revisions()->orderByRaw("FIELD(status , 'closed', 'active', 'revoked')")->latest()->first();
     }
 
 
