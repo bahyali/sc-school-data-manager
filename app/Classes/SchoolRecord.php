@@ -102,10 +102,11 @@ class SchoolRecord implements ISchoolRecord
         foreach ($conflicts as $key => $value) {
             if(count($value) == 1){unset($conflicts[$key]);}
         }
-        if($conflicts){
-            $this->school->conflict = true;
-            $this->school->save();
-        }
+        if($conflicts) $this->school->conflict = true;
+        else $this->school->conflict = false;   
+        
+        $this->school->save();
+        
     }
 }
 

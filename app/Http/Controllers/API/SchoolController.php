@@ -75,7 +75,7 @@ class SchoolController extends Controller
         $schoolcred_engine_ds = DataSource::where('name', 'schoolcred_engine')->first();
 
 
-		$revs = SchoolRevision::select($search_columns)->where('school_id', $school_id)->where('data_source_id','!=', $schoolcred_engine_ds->id)->get();
+		$revs = SchoolRevision::select($search_columns)->where('school_id', $school_id)->where('data_source_id','!=', $schoolcred_engine_ds->id)->orderBy('updated_at', 'DESC')->take(2)->get();
 		$arr = [];
 
 		foreach ($revs as $rev) {
@@ -100,15 +100,28 @@ class SchoolController extends Controller
 
 	public function FixConflict(Request $request)
 	{
-	
+
+
 		$school = School::findOrFail($request->school_id);
-		$fixed_revision =  $school->lastRevision()->first();
-		$fixed_revision[$request->column_name] = $request->column_value;
+
+		$conflict_fixed_ds = DataSource::where('name', 'conflict_fixed')->first();
+		$fixed_school_last_ver = $school->lastRevision()->first();
+
+		foreach ($request->columns as $key => $value) {
+			$fixed_school_last_ver[$key] = $value;
+		}
+			// $fixed_school_last_ver->data_source_id = $conflict_fixed_ds->id;
+			$school->update(['conflict' => false]);
+			$fixed_school_last_ver->save();
+
+
+		// $fixed_revision =  
+		// $fixed_revision[$request->column_name] = 
 		// return $fixed_revision->dataSource;
 
 	 	$record = App::make(SchoolRecord::class);
         $school = $record->addSchool($school->number);
-     	$school->addRevision($fixed_revision->toArray(), $fixed_revision->dataSource, false, true, false);
+     	$school->addRevision($fixed_school_last_ver->toArray(), $conflict_fixed_ds, false, true, false);
      	return'done';
 
 	}

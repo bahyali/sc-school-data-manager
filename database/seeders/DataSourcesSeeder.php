@@ -109,6 +109,14 @@ class DataSourcesSeeder extends Seeder
                 'title' => 'Auto Mixer',
                 'resource' => 'auto_mixer',
                 'url' => NULL,
+            ],
+
+            [
+                'name'  => 'conflict_fixed',
+                'configuration' => [],
+                'title' => 'Conflict Fixed',
+                'resource' => 'conflict_fixed',
+                'url' => NULL,
             ]
         ];
 
