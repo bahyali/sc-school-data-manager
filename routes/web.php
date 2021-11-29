@@ -31,16 +31,18 @@ Route::get('/gui/upload', function () {
 
 Route::get('/ontario/upload', [App\Http\Controllers\ImporterController::class, 'ontarioImporting'])->name('ontarioImporting');
 
-
 Route::post('/import/excel', [App\Http\Controllers\ImporterController::class, 'excelImporting'])->name('excelImporting');
 
-Route::get('/crawl/revoked', [App\Http\Controllers\ImporterController::class, 'storeRevokedSchools'])->name('storeRevokedSchools');
+// Route::get('/crawl/revoked', [App\Http\Controllers\ImporterController::class, 'storeRevokedSchools'])->name('storeRevokedSchools');
 
-Route::get('/crawl/closed', [App\Http\Controllers\ImporterController::class, 'storeClosedSchools'])->name('storeClosedSchools');
+// Route::get('/crawl/closed', [App\Http\Controllers\ImporterController::class, 'storeClosedSchools'])->name('storeClosedSchools');
+
+Route::get('/crawl/{ds_name}', [App\Http\Controllers\ImporterController::class, 'crawlSchools'])->name('crawlSchools');
+
+
+
 
 Route::get('/remix/all', [App\Http\Controllers\ImporterController::class, 'remixAllSchools'])->name('remixAllSchools');
-
-
 
 Route::get('/conflict/{school_id}/{column?}', [App\Http\Controllers\ImporterController::class, 'getConflicts'])->name('getConflicts');
 

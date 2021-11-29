@@ -122,6 +122,9 @@ class SchoolController extends Controller
 	 	$record = App::make(SchoolRecord::class);
         $school = $record->addSchool($school->number);
      	$school->addRevision($fixed_school_last_ver->toArray(), $conflict_fixed_ds, false, true, false);
+
+		return response()->json('done');
+
      	return'done';
 
 	}

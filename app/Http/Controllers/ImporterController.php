@@ -34,6 +34,10 @@ class ImporterController extends Controller
 	{
 		// Force excel to take only first sheet temporarily.
 		// TODO Handle multiple sheet definitions
+
+		if(!$data_source->active) return 'Data Source is deactivated!';
+
+
 		$file_checksum = md5_file($file);
 
 		if ($data_source->checksum !== $file_checksum) {
@@ -85,27 +89,56 @@ class ImporterController extends Controller
 		return 'Crawled Successfully!';
 	}
 
-	public function storeRevokedSchools()
-	{
-		$data_source = DataSource::where('name', 'revoked_schools')
-			->first();
-		$revoked_school = new ScrapingRevokedSchool($data_source);
-		$revoked_school->start();
 
-		return 'done';
+
+	public function crawlSchools($ds_name)
+	{
+
+		$factory = [
+			'revoked' => [
+				'class' =>ScrapingRevokedSchool::class,
+				'data_source' =>DataSource::where('name', 'revoked_schools')->first()
+			],
+			'closed' => [
+				'class' => ScrapingClosedSchool::class,
+				'data_source' =>DataSource::where('name', 'closed_schools')->first()
+			]
+		];
+
+		if($factory[$ds_name]['data_source']->active){
+		$ds_class = new $factory[$ds_name]['class']($factory[$ds_name]['data_source']);
+		$ds_class->start();
+
+		return 'Done';
+		}
+		else{
+			return 'Data Source is deactivated!';
+		}
 	}
 
 
 
-	public function storeClosedSchools()
-	{
-		$data_source = DataSource::where('name', 'closed_schools')
-			->first();
-		$closed_school = new ScrapingClosedSchool($data_source);
-		$closed_school->start();
+	// public function storeRevokedSchools()
+	// {
+	// 	$data_source = DataSource::where('name', 'revoked_schools')
+	// 		->first();
+	// 	$revoked_school = new ScrapingRevokedSchool($data_source);
+	// 	$revoked_school->start();
 
-		return 'done';
-	}
+	// 	return 'done';
+	// }
+
+
+
+	// public function storeClosedSchools()
+	// {
+	// 	$data_source = DataSource::where('name', 'closed_schools')
+	// 		->first();
+	// 	$closed_school = new ScrapingClosedSchool($data_source);
+	// 	$closed_school->start();
+
+	// 	return 'done';
+	// }
 
 
 	public function ontarioImporting()
@@ -117,8 +150,7 @@ class ImporterController extends Controller
 		Storage::disk('local')->put('ontario.xlsx', $file);
 		$path = storage_path('app/ontario.xlsx');
 
-		$this->importFromExcel($data_source, $path);
-		return 'done';
+		return $this->importFromExcel($data_source, $path);
 	}
 
 

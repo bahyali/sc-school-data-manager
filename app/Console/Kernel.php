@@ -24,7 +24,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // $schedule->command('crawl:closed-schools')->hourly();
+        $schedule->command('school:import')->hourly();
+        $schedule->command('crawl:revoked-schools')->everyMinute();
+
     }
 
     /**

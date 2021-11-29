@@ -45,6 +45,7 @@ class DataSourcesSeeder extends Seeder
                 ],
                 'resource' => 'excel',
                 'url' => NULL,
+                'active' => 1,
             ],
 
             [
@@ -90,6 +91,7 @@ class DataSourcesSeeder extends Seeder
                 ],
                 'resource' => 'html',
                 'url' => NULL,
+                'active' => 1,
             ],
             [
                 'name'  => 'closed_schools',
@@ -102,6 +104,7 @@ class DataSourcesSeeder extends Seeder
                 ],
                 'resource' => 'html',
                 'url' => NULL,
+                'active' => 1,
             ],
             [
                 'name'  => 'schoolcred_engine',
