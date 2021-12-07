@@ -100,7 +100,7 @@ class DataSourcesSeeder extends Seeder
                     'overrides' => [
                         'status' => 'closed'
                     ],
-                    'url' => 'http://www.edu.gov.on.ca/eng/general/elemsec/privsch/closed.html#2021',
+                    'url' => 'https://www.ontario.ca/page/private-schools-have-closed',
                 ],
                 'resource' => 'html',
                 'url' => NULL,

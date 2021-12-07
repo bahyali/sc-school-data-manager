@@ -5,59 +5,77 @@ namespace App\Classes;
 use Symfony\Component\DomCrawler\Crawler;
 use App\Classes\ScrapingGetter;
 use Carbon\Carbon;
-
+use App\Models\SchoolRevision;
 
 
 
 class ScrapingClosedSchool extends ScrapingGetter
 {
 
+
 	public function start()
-	{
+	{	
 
 		$crawler = $this->newCrawler();
-		$nodeValues = $crawler->filter('#right_column ul')->first()->nextAll()->filter('li');
-		return $this->scrapeAndStore($nodeValues);
-	}
+		$whole_page_date = $crawler->filter('.flex-table table tbody');
+		$whole_page_date->each(function ($node) use (&$arr) {
+			$arr[] = $node->html();
+		});
+		
+		$html_checksum = md5(json_encode($arr));
+		if ($this->data_source->checksum == $html_checksum) {}
+
+
+		else{
+		 
+			$whole_page_date = $crawler->filter('.body-field h3:contains("school year")');
+			 $this->scrapeAndStore($whole_page_date);
+			}
+
+			$this->data_source->update([
+			'last_sync' => Carbon::now(),
+			'checksum' => $html_checksum
+		]);
+
+
+	} 
+
 
 	public function scrapeAndStore($nodeValues)
 	{
 
-		$arr = [];
-		$nodeValues->each(function ($node) use (&$arr) {
-			$arr[] = $node->html();
-		});
-		$html_checksum = md5(json_encode($arr));
+		$nodeValues->each(function ($node) {
 
-		if ($this->data_source->checksum == $html_checksum) {
-			// return 'This page scrapped before!';
-		} else {
-			$nodeValues->each(function ($node) {
-
-				$tags = explode("\n", strip_tags($node->html()));
-				// $tags = array_filter($tags);
-				$tags = array_filter($tags, function ($v) {
-					return strlen($v) > 2;
-				});
-				$tags = array_values($tags);
-
-				$scraper_school = [];
-				$scraper_school['name'] = $this->getSchoolName($tags[0]);
-				$scraper_school['number'] = $this->getSchoolNumber($tags[0]);
-				$scraper_school['address_line_1'] = trim($tags[1]);
-				$scraper_school['address_line_2'] = (count($tags) > 3) ? (str_contains($tags[2], 'Principal')) ? '' : trim($tags[2]) : '';
-				$scraper_school['address_line_3'] = (count($tags) > 5) ? trim($tags[3]) : '';
-				$scraper_school['principal_name'] = $this->getPrincipalName($node->text());
-				$scraper_school['owner_business'] = $this->getOwnerBusiness($node->text());
-
-				return $this->storeScrapingSchool($scraper_school);
+			$closed_year = preg_replace("/[a-zA-Z]+/", '',$node->text());
+			$table_content = $node->nextAll()->first()->filter('table tbody')->filter('tr')->each(function ($tr, $i) {
+			    return $tr->filter('td')->each(function ($td, $i) {
+			        return trim($td->text());
+			    });
 			});
-		}
 
-		$this->data_source->update([
-			'last_sync' => Carbon::now(),
-			'checksum' => $html_checksum
-		]);
+			foreach ($table_content as $value) {
+				$scraper_school = [];
+				$scraper_school['name'] = $value[0];
+				$scraper_school['number'] = $value[1];
+				$scraper_school['address_line_1'] = utf8_decode($value[2]);
+				$scraper_school['principal_name'] = $value[3];
+				$scraper_school['owner_business'] = $value[4];
+				$scraper_school['closed_date'] = $closed_year;
+
+				$this->storeScrapingSchool($scraper_school);
+
+				// SchoolRevision::create([
+				// 	'name' => $value[0],
+				// 	'number' => $value[1],
+				// 	'address_line_1' => utf8_decode($value[2]),
+				// 	'principal_name' => $value[3],
+				// 	'owner_business' => $value[4],
+				// 	'hash' => 'asdasdas',
+				// ]);
+			}
+		
+		});
+
 	}
 
 
