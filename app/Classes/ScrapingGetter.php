@@ -5,6 +5,8 @@ namespace App\Classes;
 use App\Classes\SchoolRecord;
 use Illuminate\Support\Facades\App;
 use Symfony\Component\DomCrawler\Crawler;
+use Carbon\Carbon;
+
 
 
 
@@ -60,5 +62,15 @@ class ScrapingGetter
         $res = $client->request('GET', $this->url);
         $html = '' . $res->getBody();
         return $crawler = new Crawler($html);
+    }
+
+
+
+    public function dataSourceUpdate($checksum)
+    {
+        $this->data_source->update([
+            'last_sync' => Carbon::now(),
+            'checksum' => $checksum
+        ]);
     }
 }

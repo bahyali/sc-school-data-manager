@@ -32,12 +32,7 @@ class ScrapingClosedSchool extends ScrapingGetter
 			 $this->scrapeAndStore($whole_page_date);
 			}
 
-			$this->data_source->update([
-			'last_sync' => Carbon::now(),
-			'checksum' => $html_checksum
-		]);
-
-
+			$this->dataSourceUpdate($html_checksum);
 	} 
 
 

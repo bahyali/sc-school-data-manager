@@ -66,11 +66,8 @@ class ScrapingRevokedSchool extends ScrapingGetter
 			});
 		}
 
+		$this->dataSourceUpdate($html_checksum);
 
-		$this->data_source->update([
-			'last_sync' => Carbon::now(),
-			'checksum' => $html_checksum
-		]);
 	}
 
 
