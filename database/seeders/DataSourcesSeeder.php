@@ -17,7 +17,7 @@ class DataSourcesSeeder extends Seeder
     {
         $defined_types = [
             [
-                'name'  => 'private_schools_ontario',
+                'name'  => 'active_schools',
                 'title' => 'Private Schools Contact Information',
                 'configuration' => [
                     'overrides' => [
