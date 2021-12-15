@@ -35,9 +35,12 @@ class DataSourceController extends Controller
      * @param  \App\Models\DataSource  $dataSource
      * @return \Illuminate\Http\Response
      */
-    public function show(DataSource $dataSource)
+    public function show($idOrName)
     {
-        return $dataSource;
+        $ds = DataSource::find($idOrName);
+        if(!$ds) 
+        $ds = DataSource::where('name', $idOrName)->first();
+        return $ds;
     }
 
     /**
@@ -61,5 +64,12 @@ class DataSourceController extends Controller
     public function destroy(DataSource $dataSource)
     {
         //
+    }
+
+
+
+     public function findByName($name)
+    {
+        return DataSource::where('name', $name)->first();
     }
 }
