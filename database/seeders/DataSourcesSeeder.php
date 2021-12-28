@@ -18,7 +18,7 @@ class DataSourcesSeeder extends Seeder
         $defined_types = [
             [
                 'name'  => 'active_schools',
-                'title' => 'Private Schools Contact Information',
+                'title' => 'Ministry website: Schools in operation',
                 'configuration' => [
                     'overrides' => [
                         'status' => 'active'
@@ -50,7 +50,7 @@ class DataSourcesSeeder extends Seeder
 
             [
                 'name'  => 'onsis_all_schools',
-                'title' => 'ONSIS Schools Sheet',
+                'title' => 'Manual upload: ONSIS Spreadsheet',
                 'configuration' => [
                     'overrides' => [],
                     'mapping' => [
@@ -82,7 +82,7 @@ class DataSourcesSeeder extends Seeder
             ],
             [
                 'name'  => 'revoked_schools',
-                'title' => 'Revoked Schools',
+                'title' => 'Ministry website: Revoked Schools',
                 'configuration' => [
                     'overrides' => [
                         'status' => 'revoked'
@@ -95,7 +95,7 @@ class DataSourcesSeeder extends Seeder
             ],
             [
                 'name'  => 'closed_schools',
-                'title' => 'Closed Schools',
+                'title' => 'Ministry website: Closed Schools',
                 'configuration' => [
                     'overrides' => [
                         'status' => 'closed'
@@ -117,7 +117,7 @@ class DataSourcesSeeder extends Seeder
             [
                 'name'  => 'conflict_fixed',
                 'configuration' => [],
-                'title' => 'Conflict Fixed',
+                'title' => 'Conflict Fixer',
                 'resource' => 'conflict_fixed',
                 'url' => NULL,
             ]
