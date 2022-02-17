@@ -34,6 +34,8 @@ Route::get('/schools-revisions', [App\Http\Controllers\API\SchoolController::cla
 Route::post('/crawl/{id}', [App\Http\Controllers\ImporterController::class, 'crawlSchoolById'])
     ->name('crawlSchoolById');
 
+Route::get('/crawl/active_schools', [App\Http\Controllers\ImporterController::class, 'ontarioImporting']);
+
 Route::get('/school/{id}', [App\Http\Controllers\API\SchoolController::class, 'getOneSchool'])
     ->name('getOneSchool');
 
@@ -50,6 +52,7 @@ Route::get('/school-conflicts/{id}/{column?}', [App\Http\Controllers\API\SchoolC
 
 Route::post('/fix-conflict', [App\Http\Controllers\API\SchoolController::class, 'FixConflict'])
     ->name('FixConflict');
+
 
 
 // Route::get('/schools/{status}', [App\Http\Controllers\API\SchoolController::class, 'getActiveSchools'])->name('getActiveSchools');
