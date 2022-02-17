@@ -82,8 +82,7 @@ class ScrapingClosedSchool extends ScrapingGetter
 
 	private function getClosingYear($year_str)
 	{
-		$years = explode('-', $year_str);
-		return trim($years[0]);
+		return $year_str;
 	}
 	public function getPrincipalName($string)
 	{
