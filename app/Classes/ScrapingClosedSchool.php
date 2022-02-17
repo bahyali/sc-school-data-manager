@@ -53,7 +53,7 @@ class ScrapingClosedSchool extends ScrapingGetter
 				$scraper_school['address_line_1'] = $value[2];
 				$scraper_school['principal_name'] = $value[3];
 				$scraper_school['owner_business'] = $value[4];
-				$scraper_school['closed_date'] = $closed_year;
+				$scraper_school['closed_date'] = $this->getClosingYear($closed_year);
 
 				$this->storeScrapingSchool($scraper_school);
 
@@ -78,6 +78,12 @@ class ScrapingClosedSchool extends ScrapingGetter
 
 		// todo fix this.
 		return trim($numbers[1]);
+	}
+
+	private function getClosingYear($year_str)
+	{
+		$years = explode('-', $year_str);
+		return trim($years[0]);
 	}
 	public function getPrincipalName($string)
 	{
