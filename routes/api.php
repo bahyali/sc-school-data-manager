@@ -34,7 +34,7 @@ Route::get('/schools-revisions', [App\Http\Controllers\API\SchoolController::cla
 Route::post('/crawl/{id}', [App\Http\Controllers\ImporterController::class, 'crawlSchoolById'])
     ->name('crawlSchoolById');
 
-Route::get('/crawl/active_schools', [App\Http\Controllers\ImporterController::class, 'ontarioImporting']);
+Route::post('/crawl/active_schools', [App\Http\Controllers\ImporterController::class, 'ontarioImporting']);
 
 Route::get('/school/{id}', [App\Http\Controllers\API\SchoolController::class, 'getOneSchool'])
     ->name('getOneSchool');
