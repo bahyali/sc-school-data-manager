@@ -69,6 +69,7 @@ class DataSourcesSeeder extends Seeder
                         'corporation_establish_date' => 14,
                         'corporation_contact_name' => 15,
                         'enrollment' => 16,
+                        'contact_email' => 17,
                     ],
                     'date_columns' => [
                         'open_date',
