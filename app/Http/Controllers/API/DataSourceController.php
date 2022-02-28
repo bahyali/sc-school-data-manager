@@ -15,7 +15,7 @@ class DataSourceController extends Controller
      */
     public function index()
     {
-        return DataSource::where('resource', '!=', 'auto_mixer')->paginate();
+        return DataSource::whereNotIn('resource', ['auto_mixer', 'conflict_fixed'])->paginate();
     }
 
     /**
@@ -38,8 +38,8 @@ class DataSourceController extends Controller
     public function show($idOrName)
     {
         $ds = DataSource::find($idOrName);
-        if(!$ds) 
-        $ds = DataSource::where('name', $idOrName)->first();
+        if (!$ds)
+            $ds = DataSource::where('name', $idOrName)->first();
         return $ds;
     }
 
@@ -68,7 +68,7 @@ class DataSourceController extends Controller
 
 
 
-     public function findByName($name)
+    public function findByName($name)
     {
         return DataSource::where('name', $name)->first();
     }

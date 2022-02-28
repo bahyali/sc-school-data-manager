@@ -41,7 +41,7 @@ class ScrapingGetter
     {
         $revoked_date = explode('revoked effective', $string);
         $revoked_date = trim($revoked_date[1]);
-        return $revoked_date;
+        return \Carbon\Carbon::parse($revoked_date);
     }
 
     public function storeScrapingSchool($array)

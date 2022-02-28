@@ -14,26 +14,24 @@ class ScrapingClosedSchool extends ScrapingGetter
 
 
 	public function start()
-	{	
+	{
 
 		$crawler = $this->newCrawler();
 		$whole_page_date = $crawler->filter('.flex-table table tbody');
 		$whole_page_date->each(function ($node) use (&$arr) {
 			$arr[] = $node->html();
 		});
-		
+
 		$html_checksum = md5(json_encode($arr));
-		if ($this->data_source->checksum == $html_checksum) {}
+		if ($this->data_source->checksum == $html_checksum) {
+		} else {
 
-
-		else{
-		 
 			$whole_page_date = $crawler->filter('.body-field h3:contains("school year")');
-			 $this->scrapeAndStore($whole_page_date);
-			}
+			$this->scrapeAndStore($whole_page_date);
+		}
 
-			$this->dataSourceUpdate($html_checksum);
-	} 
+		$this->dataSourceUpdate($html_checksum);
+	}
 
 
 	public function scrapeAndStore($nodeValues)
@@ -41,21 +39,21 @@ class ScrapingClosedSchool extends ScrapingGetter
 
 		$nodeValues->each(function ($node) {
 
-			$closed_year = preg_replace("/[a-zA-Z]+/", '',$node->text());
+			$closed_year = preg_replace("/[a-zA-Z]+/", '', $node->text());
 			$table_content = $node->nextAll()->first()->filter('table tbody')->filter('tr')->each(function ($tr, $i) {
-			    return $tr->filter('td')->each(function ($td, $i) {
-			        return trim($td->text());
-			    });
+				return $tr->filter('td')->each(function ($td, $i) {
+					return trim($td->text());
+				});
 			});
 
 			foreach ($table_content as $value) {
 				$scraper_school = [];
 				$scraper_school['name'] = $value[0];
-				$scraper_school['number'] = $value[1];
-				$scraper_school['address_line_1'] = utf8_decode($value[2]);
+				$scraper_school['number'] = $this->getNumberFromString($value[1]);
+				$scraper_school['address_line_1'] = $value[2];
 				$scraper_school['principal_name'] = $value[3];
 				$scraper_school['owner_business'] = $value[4];
-				$scraper_school['closed_date'] = $closed_year;
+				$scraper_school['closed_date'] = $this->getClosingYear($closed_year);
 
 				$this->storeScrapingSchool($scraper_school);
 
@@ -68,12 +66,24 @@ class ScrapingClosedSchool extends ScrapingGetter
 				// 	'hash' => 'asdasdas',
 				// ]);
 			}
-		
 		});
-
 	}
 
+	private function getNumberFromString($num_str)
+	{
+		$numbers = explode('&', $num_str);
 
+		if (count($numbers) == 1)
+			return $num_str;
+
+		// todo fix this.
+		return trim($numbers[1]);
+	}
+
+	private function getClosingYear($year_str)
+	{
+		return $year_str;
+	}
 	public function getPrincipalName($string)
 	{
 		if (str_contains($string, 'Principal')) {

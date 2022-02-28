@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
 use App\Models\SchoolRevision;
 use DB;
+use Exception;
 
 class ImporterController extends Controller
 {
@@ -32,10 +33,11 @@ class ImporterController extends Controller
 
 	public function importFromExcel($data_source, $file)
 	{
+		ini_set('max_execution_time', 600); //10 minutes
 		// Force excel to take only first sheet temporarily.
 		// TODO Handle multiple sheet definitions
 
-		if(!$data_source->active) return 'Data Source is deactivated!';
+		if (!$data_source->active) return 'Data Source is deactivated!';
 
 
 		$file_checksum = md5_file($file);
@@ -96,22 +98,21 @@ class ImporterController extends Controller
 
 		$factory = [
 			'revoked' => [
-				'class' =>ScrapingRevokedSchool::class,
-				'data_source' =>DataSource::where('name', 'revoked_schools')->first()
+				'class' => ScrapingRevokedSchool::class,
+				'data_source' => DataSource::where('name', 'revoked_schools')->first()
 			],
 			'closed' => [
 				'class' => ScrapingClosedSchool::class,
-				'data_source' =>DataSource::where('name', 'closed_schools')->first()
+				'data_source' => DataSource::where('name', 'closed_schools')->first()
 			]
 		];
 
-		if($factory[$ds_name]['data_source']->active){
-		$ds_class = new $factory[$ds_name]['class']($factory[$ds_name]['data_source']);
-		$ds_class->start();
+		if ($factory[$ds_name]['data_source']->active) {
+			$ds_class = new $factory[$ds_name]['class']($factory[$ds_name]['data_source']);
+			$ds_class->start();
 
-		return 'Done';
-		}
-		else{
+			return 'Done';
+		} else {
 			return 'Data Source is deactivated!';
 		}
 	}
@@ -144,14 +145,15 @@ class ImporterController extends Controller
 	public function ontarioImporting()
 	{
 
-		$data_source = DataSource::where('name', 'private_schools_ontario')->first();
-		$url = $data_source['configuration']['url'];
+		$data_source = DataSource::where('name', 'active_schools')->first();
+		$url = $data_source->configuration['url'];
 		$file = file_get_contents($url);
-		Storage::disk('local')->put('ontario.xlsx', $file);
-		$path = storage_path('app/ontario.xlsx');
+
+		if (Storage::disk('local')->put('ontario.xlsx', $file))
+			$path = storage_path('app/ontario.xlsx');
+		else
+			throw new Exception('Couldn\'t save file!');
 
 		return $this->importFromExcel($data_source, $path);
 	}
-
-
 }
