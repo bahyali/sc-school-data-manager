@@ -46,7 +46,8 @@ class ScrapingRevokedSchool extends ScrapingGetter
 				$scraper_school['name'] = $this->getSchoolName($tags[0]);
 				$scraper_school['number'] = $this->getSchoolNumber($tags[0]);
 				$scraper_school['address_line_1'] = trim($tags[1]);
-				$scraper_school['address_line_2'] = trim($tags[2]);
+				$scraper_school['address_line_2'] = $this->getCity($tags[2]);
+				$scraper_school['address_line_3'] = $this->getPostalCode($tags[2]);
 				$scraper_school['revoked_date'] = $this->getRevokedDate($node->text());
 				$scraper_school['principal_name'] = '';
 				$scraper_school['owner_business'] = '';
@@ -91,5 +92,24 @@ class ScrapingRevokedSchool extends ScrapingGetter
 			$owner_business = $owner_business[1];
 			return trim($owner_business);
 		} else return '';
+	}
+
+
+	public function getCity($string){
+		$string = trim($string);
+		$city = explode(',', $string);
+		$city = $city[0];
+		return trim($city);
+	}
+
+
+	public function getPostalCode($string){
+		$string = trim($string);
+		$postal_code = explode('ON', $string);
+		if(isset($postal_code[1])){
+			$postal_code = $postal_code[1];
+			return trim($postal_code);
+		}else return '';
+
 	}
 }

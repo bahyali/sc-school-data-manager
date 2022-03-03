@@ -42,15 +42,20 @@ class ScrapingClosedSchool extends ScrapingGetter
 			$closed_year = preg_replace("/[a-zA-Z]+/", '', $node->text());
 			$table_content = $node->nextAll()->first()->filter('table tbody')->filter('tr')->each(function ($tr, $i) {
 				return $tr->filter('td')->each(function ($td, $i) {
-					return trim($td->text());
+					if($i == 2) return trim($td->html());
+					else return trim($td->text());
 				});
 			});
+
+			// dd($table_content);
 
 			foreach ($table_content as $value) {
 				$scraper_school = [];
 				$scraper_school['name'] = $value[0];
 				$scraper_school['number'] = $this->getNumberFromString($value[1]);
-				$scraper_school['address_line_1'] = $value[2];
+				$scraper_school['address_line_1'] = $this->getAddress($value[2]);
+				$scraper_school['address_line_2'] = $this->getCity($value[2]);
+				$scraper_school['address_line_3'] = $this->getPostalCode($value[2]);
 				$scraper_school['principal_name'] = $value[3];
 				$scraper_school['owner_business'] = $value[4];
 				$scraper_school['closed_date'] = $this->getClosingYear($closed_year);
@@ -112,5 +117,28 @@ class ScrapingClosedSchool extends ScrapingGetter
 			$owner_business = array_pop($owner_business);
 			return ltrim($owner_business);
 		} else return '';
+	}
+
+
+	public function getAddress($long_address){
+
+		$long_address = preg_split('/\r\n|\r|\n/', $long_address);
+		$address = $long_address[0];
+		return strip_tags($address);
+
+	}
+
+
+	public function getCity($long_address){
+		$long_address = preg_split('/\r\n|\r|\n/', $long_address);
+		$city = $long_address[1];
+		return strip_tags($city);
+	}
+
+
+	public function getPostalCode($long_address){
+		$long_address = preg_split('/\r\n|\r|\n/', $long_address);
+		$postal_code = $long_address[2];
+		return strip_tags($postal_code);
 	}
 }
