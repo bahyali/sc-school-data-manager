@@ -44,18 +44,13 @@ Route::get('/date-school', [App\Http\Controllers\API\SchoolController::class, 'g
     ->name('getSchoolByDate');
 
 
-Route::get('/conflicts', [App\Http\Controllers\API\SchoolController::class, 'getConflictedSchools'])
-    ->name('getConflictedSchools');
 
 
-Route::get('/school-conflicts/{id}/{column?}', [App\Http\Controllers\API\SchoolController::class, 'getSchoolConflictColumns'])
-    ->name('getSchoolConflictColumns');
+Route::get('/conflicts', [App\Http\Controllers\API\SchoolController::class, 'getConflictedSchools']);
+Route::get('/school-conflicts/{id}/{column?}', [App\Http\Controllers\API\SchoolController::class, 'getSchoolConflictColumns']);
+Route::post('/fix-conflict', [App\Http\Controllers\API\SchoolController::class, 'FixConflict']);
 
-Route::post('/fix-conflict', [App\Http\Controllers\API\SchoolController::class, 'FixConflict'])
-    ->name('FixConflict');
+Route::get('/repeated-schools', [App\Http\Controllers\API\SchoolController::class, 'getAllRepeatedSchools']);
+Route::get('/repeated-schools/{school_name}', [App\Http\Controllers\API\SchoolController::class, 'getOneRepeatedSchool']);
 
 
-
-// Route::get('/schools/{status}', [App\Http\Controllers\API\SchoolController::class, 'getActiveSchools'])->name('getActiveSchools');
-// Route::get('/schools/revoked', [App\Http\Controllers\API\SchoolController::class, 'getRevokedSchools'])->name('getRevokedSchools');
-// Route::get('/schools/closed', [App\Http\Controllers\API\SchoolController::class, 'getClosedSchools'])->name('getClosedSchools');

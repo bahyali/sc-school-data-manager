@@ -10,6 +10,8 @@ use Carbon\Carbon;
 use App\Models\SchoolRevision;
 use Illuminate\Support\Facades\App;
 use App\Classes\SchoolRecord;
+use DB;
+
 
 
 class SchoolController extends Controller
@@ -62,7 +64,7 @@ class SchoolController extends Controller
 	public function getConflictedSchools()
 	{
 		$conflicted_schools = School::where('conflict', true)->with('lastRevision')->get();
-		return response()->json($conflicted_schools);
+        return response()->json(['conflicted_schools'=>$conflicted_schools],200);
 
 	}
 
@@ -76,31 +78,30 @@ class SchoolController extends Controller
 
 
 		$revs = SchoolRevision::select($search_columns)->where('school_id', $school_id)->where('data_source_id','!=', $schoolcred_engine_ds->id)->orderBy('updated_at', 'DESC')->take(2)->get();
-		$arr = [];
+		$school_conflicted_columns = [];
 
 		foreach ($revs as $rev) {
 
 			foreach ($search_columns as $search_column) {
 				if($rev->$search_column){
-				 	$arr[$search_column] [] = trim($rev->$search_column);
-					$arr[$search_column]  = array_unique(array_values($arr[$search_column]));
+				 	$school_conflicted_columns[$search_column] [] = trim($rev->$search_column);
+					$school_conflicted_columns[$search_column]  = array_unique(array_values($school_conflicted_columns[$search_column]));
 				}
 			}
 		}
 
-		foreach ($arr as $key => $value) {
-			if(count($value) == 1){unset($arr[$key]);}
+		foreach ($school_conflicted_columns as $key => $value) {
+			if(count($value) == 1){unset($school_conflicted_columns[$key]);}
 		}
-		return $arr;
 
-		
-
+        return response()->json(['school_conflicted_columns'=>$school_conflicted_columns],200);
 	}
+
+
 
 
 	public function FixConflict(Request $request)
 	{
-
 
 		$school = School::findOrFail($request->school_id);
 
@@ -110,22 +111,58 @@ class SchoolController extends Controller
 		foreach ($request->columns as $key => $value) {
 			$fixed_school_last_ver[$key] = $value;
 		}
-			// $fixed_school_last_ver->data_source_id = $conflict_fixed_ds->id;
-			$school->update(['conflict' => false]);
-			$fixed_school_last_ver->save();
 
-
-		// $fixed_revision =  
-		// $fixed_revision[$request->column_name] = 
-		// return $fixed_revision->dataSource;
+		$school->update(['conflict' => false]);
+		$fixed_school_last_ver->save();
 
 	 	$record = App::make(SchoolRecord::class);
         $school = $record->addSchool($school->number);
      	$school->addRevision($fixed_school_last_ver->toArray(), $conflict_fixed_ds, false, true, false);
 
-		return response()->json('done');
-
-     	return'done';
+        return response()->json(['success'], 201);
 
 	}
+
+
+
+	public function getAllRepeatedSchools()
+	{
+
+		$repeated_schools = DB::select("SELECT DISTINCT name FROM school_revisions R
+											 	WHERE EXISTS (
+											    SELECT 1 
+											    FROM school_revisions 
+											    WHERE name = R.name AND number <> R.number
+												);
+										");
+
+		// return $repeatedly_schools = collect($repeatedly_schools)->groupBy('name');
+        return response()->json(['repeated_schools'=>$repeated_schools],200);
+
+	}
+
+
+
+	public function getOneRepeatedSchool($school_name)
+	{
+		$schools =  SchoolRevision::where('name', $school_name)
+									->orderByRaw("FIELD(status , 'closed', 'active', 'revoked')")
+									->get()
+									->groupBy('number')
+									->map(function ($deal) {
+                            			return $deal->take(1);
+                        			});
+
+
+		foreach ($schools as $school) {
+            $repeated_schools[] = $school[0];
+        }
+
+        return $repeated_schools;
+	}
+
+
 }
+
+
+
