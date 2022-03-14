@@ -158,7 +158,8 @@ class SchoolController extends Controller
             $repeated_schools[] = $school[0];
         }
 
-        return $repeated_schools;
+        return response()->json(['repeated_schools'=>$repeated_schools],200);
+        
 	}
 
 
