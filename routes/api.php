@@ -54,3 +54,5 @@ Route::get('/repeated-schools', [App\Http\Controllers\API\SchoolController::clas
 Route::get('/repeated-schools/{school_name}', [App\Http\Controllers\API\SchoolController::class, 'getOneRepeatedSchool']);
 
 
+Route::get('/conflictor', [App\Http\Controllers\API\SchoolController::class, 'conflictor']);
+Route::get('/conflictor/conflicts', [App\Http\Controllers\API\SchoolController::class, 'conflicts']);

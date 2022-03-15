@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Classes\ConflictFinder;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\School;
@@ -10,6 +11,7 @@ use Carbon\Carbon;
 use App\Models\SchoolRevision;
 use Illuminate\Support\Facades\App;
 use App\Classes\SchoolRecord;
+use App\Models\DataChange;
 use DB;
 
 
@@ -36,7 +38,7 @@ class SchoolController extends Controller
 
 	public function getOneSchool($school_id)
 	{
-		$school = School::with(['revisions', 'revisions.dataSource'])->find($school_id);
+		$school = School::with(['lastRevision', 'revisions', 'revisions.dataSource'])->find($school_id);
 		return response()->json($school);
 	}
 
@@ -54,7 +56,7 @@ class SchoolController extends Controller
 				->where('data_source_id', $mixer_source->id)
 				->where('created_at', '>=', $date)
 				->latest();
-				// ->take(1);
+			// ->take(1);
 		}])
 			->where('updated_at', '>=', $date)
 			->get();
@@ -63,38 +65,49 @@ class SchoolController extends Controller
 
 	public function getConflictedSchools()
 	{
-		$conflicted_schools = School::where('conflict', true)->with('lastRevision')->get();
-        return response()->json(['conflicted_schools'=>$conflicted_schools],200);
-
+		$conflicted_schools = School::where('conflict', true)
+			->with('lastRevision')
+			->get();
+		return response()->json(['conflicted_schools' => $conflicted_schools], 200);
 	}
 
 
-	public function getSchoolConflictColumns($school_id, $column = null)
+	public function getSchoolConflictColumns($change_id, $column = null)
+	{
+
+		$change = DataChange::with(['values', 'values.affectedRecord', 'values.affectedRecord.dataSource', 'affectedRecords'])->findOrFail($change_id);
+
+		return response()->json(['data' => $change], 200);
+	}
+
+	public function getSchoolConflictColumnsx($school_id, $column = null)
 	{
 
 		$search_columns = ['name', 'principal_name', 'address_line_1'];
 		$search_columns = ($column) ? [$column] : $search_columns;
-        $schoolcred_engine_ds = DataSource::where('name', 'schoolcred_engine')->first();
+		$schoolcred_engine_ds = DataSource::where('name', 'schoolcred_engine')->first();
 
 
-		$revs = SchoolRevision::select($search_columns)->where('school_id', $school_id)->where('data_source_id','!=', $schoolcred_engine_ds->id)->orderBy('updated_at', 'DESC')->take(2)->get();
+		$revs = SchoolRevision::select($search_columns)->where('school_id', $school_id)->where('data_source_id', '!=', $schoolcred_engine_ds->id)->orderBy('updated_at', 'DESC')->take(2)->get();
 		$school_conflicted_columns = [];
 
 		foreach ($revs as $rev) {
 
 			foreach ($search_columns as $search_column) {
-				if($rev->$search_column){
-				 	$school_conflicted_columns[$search_column] [] = trim($rev->$search_column);
+				if ($rev->$search_column) {
+					$school_conflicted_columns[$search_column][] = trim($rev->$search_column);
 					$school_conflicted_columns[$search_column]  = array_unique(array_values($school_conflicted_columns[$search_column]));
 				}
 			}
 		}
 
 		foreach ($school_conflicted_columns as $key => $value) {
-			if(count($value) == 1){unset($school_conflicted_columns[$key]);}
+			if (count($value) == 1) {
+				unset($school_conflicted_columns[$key]);
+			}
 		}
 
-        return response()->json(['school_conflicted_columns'=>$school_conflicted_columns],200);
+		return response()->json(['school_conflicted_columns' => $school_conflicted_columns], 200);
 	}
 
 
@@ -115,12 +128,11 @@ class SchoolController extends Controller
 		$school->update(['conflict' => false]);
 		$fixed_school_last_ver->save();
 
-	 	$record = App::make(SchoolRecord::class);
-        $school = $record->addSchool($school->number);
-     	$school->addRevision($fixed_school_last_ver->toArray(), $conflict_fixed_ds, false, true, false);
+		$record = App::make(SchoolRecord::class);
+		$school = $record->addSchool($school->number);
+		$school->addRevision($fixed_school_last_ver->toArray(), $conflict_fixed_ds, false, true, false);
 
-        return response()->json(['success'], 201);
-
+		return response()->json(['success'], 201);
 	}
 
 
@@ -137,8 +149,7 @@ class SchoolController extends Controller
 										");
 
 		// return $repeatedly_schools = collect($repeatedly_schools)->groupBy('name');
-        return response()->json(['repeated_schools'=>$repeated_schools],200);
-
+		return response()->json(['repeated_schools' => $repeated_schools], 200);
 	}
 
 
@@ -146,24 +157,94 @@ class SchoolController extends Controller
 	public function getOneRepeatedSchool($school_name)
 	{
 		$schools =  SchoolRevision::where('name', $school_name)
-									->orderByRaw("FIELD(status , 'closed', 'active', 'revoked')")
-									->get()
-									->groupBy('number')
-									->map(function ($deal) {
-                            			return $deal->take(1);
-                        			});
+			->orderByRaw("FIELD(status , 'closed', 'active', 'revoked')")
+			->get()
+			->groupBy('number')
+			->map(function ($deal) {
+				return $deal->take(1);
+			});
 
 
 		foreach ($schools as $school) {
-            $repeated_schools[] = $school[0];
-        }
+			$repeated_schools[] = $school[0];
+		}
 
-        return response()->json(['repeated_schools'=>$repeated_schools],200);
-        
+		return response()->json(['repeated_schools' => $repeated_schools], 200);
 	}
 
 
+	public function conflictor()
+	{
+		$conflicts = [];
+		foreach (School::with('revisions')->limit(100000000)->cursor() as $school) {
+			$conflictor = new ConflictFinder();
+			$conflictor->setRecords($school->revisions->toArray());
+			$result = $conflictor->run(true);
+			if ($result)
+				array_push($conflicts, $result);
+		}
+
+		return response()->json(['data' => $conflicts], 200);
+	}
+
+
+	public function conflicts(Request $request)
+	{
+		$query = DataChange::with(['values', 'affectedRecords'])->limit(100000);
+
+		if ($column = $request->column)
+			$query->where('column', $column);
+
+		$response = $query->cursor()
+			->map(function ($change) {
+
+				$change['schools'] = $change->affectedRecords->reduce(function ($a, $b) {
+					$school = ['number' => $b->number, 'id' => $b->school_id, 'name' => $b->name];
+					if (!array_key_exists($b->school_id, $a))
+						$a[$b->school_id] = $school;
+					return $a;
+				}, []);
+
+				$change['schools'] = array_values($change['schools']);
+
+				return $change;
+			});
+
+		return response()->json(['data' => array_values($response->toArray())], 200);
+	}
+
+
+	public function conflictsGrouped(Request $request)
+	{
+		$query = DataChange::with(['values', 'affectedRecords']);
+
+		if ($column = $request->column)
+			$query->where('column', $column);
+
+		$response = $query->cursor()
+			->map(function ($change) {
+
+				$change['schools'] = $change->affectedRecords->reduce(function ($a, $b) {
+					$school = ['number' => $b->number, 'id' => $b->school_id, 'name' => $b->name];
+					if (!array_key_exists($b->school_id, $a))
+						$a[$b->school_id] = $school;
+					return $a;
+				}, []);
+
+				$change['schools'] = array_values($change['schools']);
+
+				return $change;
+			})->groupBy(function ($item, $key) {
+				if ($item['type'] == 'data_changed')
+					return implode('_', [$item['type'], $item['schools'][0]['id']]);
+			})->map(function ($items, $key) {
+				return [
+					'schools' => $items[0]['schools'],
+					'type' => $items[0]['type'],
+					'items' => $items
+				];
+			});
+
+		return response()->json(['data' => array_values($response->toArray())], 200);
+	}
 }
-
-
-
