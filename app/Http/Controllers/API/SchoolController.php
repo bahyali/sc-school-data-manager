@@ -176,7 +176,7 @@ class SchoolController extends Controller
 	public function conflictor()
 	{
 		$conflicts = [];
-		foreach (School::with('revisions')->limit(100000000)->cursor() as $school) {
+		foreach (School::with('revisions')->limit(10000000)->cursor() as $school) {
 			$conflictor = new ConflictFinder();
 			$conflictor->setRecords($school->revisions->toArray());
 			$result = $conflictor->run(true);
@@ -214,6 +214,8 @@ class SchoolController extends Controller
 	}
 
 
+
+
 	public function conflictsGrouped(Request $request)
 	{
 		$query = DataChange::with(['values', 'affectedRecords']);
@@ -246,5 +248,14 @@ class SchoolController extends Controller
 			});
 
 		return response()->json(['data' => array_values($response->toArray())], 200);
+	}
+
+
+	public function getConflictSchools($conflict_id)
+	{
+		$conflict = DataChange::findOrFail($conflict_id);
+		$schools = $conflict->getSchools();
+
+		return response()->json(['data' => $schools], 200);
 	}
 }

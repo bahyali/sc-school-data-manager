@@ -48,6 +48,8 @@ Route::get('/date-school', [App\Http\Controllers\API\SchoolController::class, 'g
 
 Route::get('/conflicts', [App\Http\Controllers\API\SchoolController::class, 'getConflictedSchools']);
 Route::get('/school-conflicts/{id}/{column?}', [App\Http\Controllers\API\SchoolController::class, 'getSchoolConflictColumns']);
+Route::get('/conflict/{conflict_id}/school', [App\Http\Controllers\API\SchoolController::class, 'getConflictSchools']);
+
 Route::post('/fix-conflict', [App\Http\Controllers\API\SchoolController::class, 'FixConflict']);
 
 Route::get('/repeated-schools', [App\Http\Controllers\API\SchoolController::class, 'getAllRepeatedSchools']);

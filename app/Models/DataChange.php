@@ -21,6 +21,13 @@ class DataChange extends Model
         return $this->hasMany(DataChangeValue::class);
     }
 
+
+    public function getSchools()
+    {
+        return $this->affectedRecords->map(function ($revision) {
+            return $revision->school()->with(['lastRevision', 'revisions', 'revisions.dataSource'])->first();
+        })->unique();
+    }
 }
 
 class DataChangeValue extends Model

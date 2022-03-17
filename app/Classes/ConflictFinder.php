@@ -28,13 +28,29 @@ class ConflictFinder implements IConflictFinder
                 'columns' => [
                     'principal_name'
                 ],
-                'func' => function ($values) {
-                    $values = array_values($values);
-                    if (count($values) == 2) {
-                        similar_text($values[0], $values[1], $percent);
-                        return $percent > 50;
-                    } else if (count($values) > 2)
-                        return true;
+                'func' => function (&$values) {
+                    if (count($values) > 1) {
+                        $reset_values = array_values($values);
+
+                        $scores = array_filter(
+                            $this->detectSimilarity($reset_values),
+                            function ($score) {
+                                return $score[2] > 50;
+                            }
+                        );
+
+                        $strings = array_reduce($scores, function ($carry, $score) {
+                            array_push($carry, ...array_slice($score, 0, 2));
+
+                            return $carry;
+                        }, []);
+
+                        $values = array_filter($values, function ($value) use ($strings) {
+                            return in_array($value, $strings);
+                        });
+
+                        return count($scores) > 0;
+                    }
                 }
             ],
             'change' => [
@@ -79,7 +95,7 @@ class ConflictFinder implements IConflictFinder
 
             // Search for conflicts
             if ($conflict_type = $this->detectConflict($column)) {
-                if ($this->conflictTypes[$conflict_type]['func']($values, $column, $records)) {
+                if ($this->conflictTypes[$conflict_type]['func']($values)) {
                     $conflict = new Conflict($conflict_type, $records, $column, $values);
 
                     if ($persist)
@@ -93,14 +109,16 @@ class ConflictFinder implements IConflictFinder
         return $conflicts;
     }
 
-    private function extractSchools($records)
+    private function detectSimilarity($values)
     {
-        $school_ids = [];
-        foreach ($records as $record) {
-            $school_ids[] = $record['school_id'];
-        }
+        $scores = [];
+        foreach ($values as $i => $string1)
+            foreach (array_slice($values, $i + 1) as $j => $string2) {
+                similar_text($string1, $string2, $q);
+                $scores[] = [$string1, $string2, $q];
+            }
 
-        return array_unique($school_ids);
+        return $scores;
     }
 
     private function detectConflict($column)
