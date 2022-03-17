@@ -27,7 +27,7 @@ class AddDataChangeMigrations extends Migration
             $table->unsignedBigInteger('data_change_id');
             $table->foreign('data_change_id')->references('id')->on('data_changes');
 
-            $table->unsignedBigInteger('revision_id');
+            $table->unsignedBigInteger('revision_id')->nullable();
             $table->foreign('revision_id')->references('id')->on('school_revisions');
 
             $table->string('value');

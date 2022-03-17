@@ -12,6 +12,7 @@ use App\Models\SchoolRevision;
 use Illuminate\Support\Facades\App;
 use App\Classes\SchoolRecord;
 use App\Models\DataChange;
+use App\Models\DataChangeValue;
 use DB;
 use Exception;
 
@@ -123,14 +124,35 @@ class SchoolController extends Controller
 			case 'change':
 				$school = $conflict->getSchools()->first();
 				$last_revision = $school->lastRevision()->first();
+				$value_id = $request->value_id;
 
-				foreach ($request->columns as $key => $value) {
-					$last_revision[$key] = $value;
+				if ($value_id != 'keep') {
+					$value = DataChangeValue::findOrFail($value_id);
+
+					$last_revision->{$conflict->column} = $value->affectedRecord->{$conflict->column};
+
+					$record = App::make(SchoolRecord::class);
+					$record->fetchSchool($school->id);
+					$record->addRevision($last_revision->toArray(), $ds, false, true, false);
+
+					$value->selected = 1;
+					$value->save();
+
+					$conflict->status = 'done';
+					$conflict->save();
+				} else {
+					$conflict->values()->create([
+						'selected' => 1,
+						'revision_id' => $last_revision->id,
+						'value' => $last_revision[$conflict->column]
+					]);
+
+					$conflict->status = 'keep';
+					$conflict->save();
 				}
 
-				$record = App::make(SchoolRecord::class);
-				$record->fetchSchool($school->id);
-				$record->addRevision($last_revision->toArray(), $ds, false, true, false);
+
+
 				break;
 
 			default:
