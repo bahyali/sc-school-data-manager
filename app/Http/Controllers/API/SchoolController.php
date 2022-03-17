@@ -13,8 +13,7 @@ use Illuminate\Support\Facades\App;
 use App\Classes\SchoolRecord;
 use App\Models\DataChange;
 use DB;
-
-
+use Exception;
 
 class SchoolController extends Controller
 {
@@ -116,21 +115,28 @@ class SchoolController extends Controller
 	public function FixConflict(Request $request)
 	{
 
-		$school = School::findOrFail($request->school_id);
+		$conflict = DataChange::findOrFail($request->change_id);
+		$ds = DataSource::where('name', 'conflict_fixed')->first();
 
-		$conflict_fixed_ds = DataSource::where('name', 'conflict_fixed')->first();
-		$fixed_school_last_ver = $school->lastRevision()->first();
+		switch ($conflict->type) {
+			case 'similarity':
+			case 'change':
+				$school = $conflict->getSchools()->first();
+				$last_revision = $school->lastRevision()->first();
 
-		foreach ($request->columns as $key => $value) {
-			$fixed_school_last_ver[$key] = $value;
+				foreach ($request->columns as $key => $value) {
+					$last_revision[$key] = $value;
+				}
+
+				$record = App::make(SchoolRecord::class);
+				$record->fetchSchool($school->id);
+				$record->addRevision($last_revision->toArray(), $ds, false, true, false);
+				break;
+
+			default:
+				throw new Exception("Type not supported.");
+				break;
 		}
-
-		$school->update(['conflict' => false]);
-		$fixed_school_last_ver->save();
-
-		$record = App::make(SchoolRecord::class);
-		$school = $record->addSchool($school->number);
-		$school->addRevision($fixed_school_last_ver->toArray(), $conflict_fixed_ds, false, true, false);
 
 		return response()->json(['success'], 201);
 	}
