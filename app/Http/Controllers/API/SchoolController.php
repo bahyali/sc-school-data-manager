@@ -22,11 +22,14 @@ class SchoolController extends Controller
 
 	public function getSchools($status = NULL)
 	{
-		if ($status) $schools = School::where('status', $status)->with('getSchool')->get();
+		if ($status) $schools = School::where('status', 'like', '%' . $status . '%')->with('getSchool')->get();
+		// if ($status) $schools = School::where('status', $status)->with('getSchool')->get();
 		else $schools = School::with('getSchool')->get();
 
 		return response()->json($schools);
 	}
+
+	
 
 
 	public function getSchoolsRevisions()
