@@ -67,7 +67,8 @@ class DataMixer
         $SORT = [
             'active',
             'revoked',
-            'closed'
+            'closed',
+            'revoked, closed'
         ];
 
         $data_sources = $school->dataSources->pluck('id');

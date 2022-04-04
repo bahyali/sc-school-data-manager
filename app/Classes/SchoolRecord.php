@@ -36,6 +36,10 @@ class SchoolRecord implements ISchoolRecord
             throw new Exception("We need a school to create a revision!");
 
         $revision['data_source_id'] = $data_source->id;
+
+        //to check if school can have Revoked + Closed statuses at the same time
+        $revision['status'] = $this->checkStatus($revision['status']);
+
         
         // Sort array to standardize fingerprint
         ksort($revision);
@@ -107,6 +111,14 @@ class SchoolRecord implements ISchoolRecord
         
         $this->school->save();
         
+    }
+
+
+    public function checkStatus($incoming_status){
+        if( $this->school->status == 'revoked' && $incoming_status == 'closed') return 'revoked, closed';
+        else if( $this->school->status == 'closed' && $incoming_status == 'revoked') return 'revoked, closed';
+        else return $incoming_status
+
     }
 }
 
