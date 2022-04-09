@@ -38,6 +38,7 @@ class DataMixer
         // Get latest revision from each data source sorted
         $latest_revisions = $this->getLatestRevisions($school);
 
+
         $remix = $this->mix($latest_revisions);
 
         if ($remix)
@@ -106,6 +107,26 @@ class DataMixer
             return array_search($revision->get('status'), $SORT);
         });
 
+        if($latest_revisions){
+            $latest_revisions = $this->managingDatasourcesPriorities($latest_revisions);
+        }
         return $latest_revisions;
+    }
+
+
+    public function managingDatasourcesPriorities($revisions)
+    {
+        $onsis_ds = DataSource::where('name','onsis_all_schools')->first();
+        $onsis_items = new Collection();
+        foreach ($revisions as $key => $value) {
+            if ($value["data_source_id"] == $onsis_ds->id) {
+                $onsis_items->push($value);
+                $revisions->forget($key);      
+            }
+        }
+
+        if(!empty($onsis_items)) $revisions->push(...$onsis_items); //adding onsis items to the end of collection
+        return $revisions;
+
     }
 }

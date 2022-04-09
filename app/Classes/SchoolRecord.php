@@ -117,7 +117,7 @@ class SchoolRecord implements ISchoolRecord
     public function checkStatus($incoming_status){
         if( $this->school->status == 'revoked' && $incoming_status == 'closed') return 'revoked, closed';
         else if( $this->school->status == 'closed' && $incoming_status == 'revoked') return 'revoked, closed';
-        else return $incoming_status
+        else return $incoming_status;
 
     }
 }
