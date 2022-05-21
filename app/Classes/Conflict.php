@@ -24,13 +24,15 @@ class Conflict implements IConflict
     protected $values = [];
     protected $type = '';
     protected $column;
+    protected $school_id;
 
-    public function __construct($type, $affectedRecords, $column, $values)
+    public function __construct($type, $affectedRecords, $column, $values, $school_id)
     {
         $this->affectedRecords = $affectedRecords;
         $this->type = $type;
         $this->column = $column;
         $this->values = $values;
+        $this->school_id = $school_id;
     }
 
     public function getType()
@@ -78,14 +80,16 @@ class Conflict implements IConflict
         $hash = md5(serialize([
             'type' => $this->type,
             'column' => $this->column,
-            'values' => $this->values
+            'values' => $this->values,
+            'school_id' => $this->school_id
         ]));
 
         $dataChange = DataChange::updateOrCreate(
             [
                 'type' => $this->type,
                 'column' => $this->column,
-                'hash' => $hash
+                'hash' => $hash,
+                'school_id' => $this->school_id
             ],
             [
                 'hash' => $hash

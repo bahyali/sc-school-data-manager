@@ -57,7 +57,7 @@ class SchoolController extends Controller
 		return School::with(['revisions' => function ($query) use ($mixer_source, $date) {
 			$query
 				->where('data_source_id', $mixer_source->id)
-				->where('created_at', '>=', $date)
+				->where('updated_at', '>=', $date)
 				->latest();
 			// ->take(1);
 		}])
@@ -168,6 +168,7 @@ class SchoolController extends Controller
 
 
 
+
 	public function getAllRepeatedSchools()
 	{
 
@@ -210,6 +211,7 @@ class SchoolController extends Controller
 		foreach (School::with('revisions')->limit(10000000)->cursor() as $school) {
 			$conflictor = new ConflictFinder();
 			$conflictor->setRecords($school->revisions->toArray());
+			$conflictor->setSchoolId($school->id);
 			$result = $conflictor->run(true);
 			if ($result)
 				array_push($conflicts, $result);
@@ -289,4 +291,78 @@ class SchoolController extends Controller
 
 		return response()->json(['data' => $schools], 200);
 	}
+
+
+
+	public function changeData(Request $request){
+
+		$old_data = DataChangeValue::find($request->old_data)
+					->update([
+						'selected' => false,
+						'type' => 'changed_data'
+					]);
+
+		$current_data = DataChangeValue::find($request->current_data);
+		$current_data->update([
+						'selected' => true,
+						'type' => 'conflict'
+					]);
+
+		$data_change = $current_data->dataChange;	
+		$data_change->update(['status' => 'done']);
+
+		$school = $data_change->school;
+		$school->update(['changed_data' => true]);
+
+		$last_revision = $school->lastRevision()->first();
+		$last_revision->update([
+			$data_change->column => $current_data->value,
+			'updated_at' => Carbon::now()->toDateTimeString()
+		]);
+
+		$ds = DataSource::where('name', 'conflict_fixed')->first();
+		$record = App::make(SchoolRecord::class);
+		$record->fetchSchool($school->id);
+
+		$last_revision['created_at'] = Carbon::now()->toDateTimeString();
+		$record->addRevision($last_revision->toArray(), $ds, false, true, false);
+						
+		return response()->json(['success'], 201);
+	}
+
+
+
+	public function dataChangesUpdate(){
+
+		foreach(DataChange::all() as $dataChange){
+			$dataChange->school_id = $dataChange->getSchools()[0]['id'];
+			$dataChange->save();
+		}
+		return 'done!';
+	}
+
+
+
+	public function getChangedData($school_id, $column = null){
+
+		$data_changes = DataChange::where('school_id', $school_id)->where('status', 'done');
+		($column) ? $data_changes->where('column', $column) : '';
+		$data_changes = $data_changes->get();
+		if(!count($data_changes)) return response()->json(['no changes available'], 204);
+
+		else{
+
+			$arr = [];
+			foreach($data_changes as $data_change){
+				foreach($data_change->values as $value){
+					if($value->selected == false && $value->type == 'changed_data') $arr[$data_change->column] [] = $value->value;
+				}
+			}
+
+			return response()->json([$arr], 200);
+
+		}
+	}
+
+
 }

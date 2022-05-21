@@ -58,3 +58,14 @@ Route::get('/repeated-schools/{school_name}', [App\Http\Controllers\API\SchoolCo
 
 Route::get('/conflictor', [App\Http\Controllers\API\SchoolController::class, 'conflictor']);
 Route::get('/conflictor/conflicts', [App\Http\Controllers\API\SchoolController::class, 'conflicts']);
+
+
+Route::post('/change-data', [App\Http\Controllers\API\SchoolController::class, 'changeData']);
+
+Route::get('/update-data-changes-table', [App\Http\Controllers\API\SchoolController::class, 'dataChangesUpdate']);//tempo route
+
+
+Route::get('/changed-data/{school_id}/{column?}', [App\Http\Controllers\API\SchoolController::class, 'getChangedData']);
+
+
+

@@ -28,21 +28,26 @@ class DataChange extends Model
             return $revision->school()->with(['lastRevision', 'revisions', 'revisions.dataSource'])->first();
         })->unique();
     }
-}
 
-class DataChangeValue extends Model
-{
-    use HasFactory;
 
-    protected $guarded = ['id'];
-
-    public function dataChange()
-    {
-        return $this->belongsTo(DataChange::class);
-    }
-
-    public function affectedRecord()
-    {
-        return $this->belongsTo(SchoolRevision::class, 'revision_id');
+    public function school(){
+        return $this->belongsTo(School::class);
     }
 }
+
+// class DataChangeValue extends Model
+// {
+//     use HasFactory;
+
+//     protected $guarded = ['id'];
+
+//     public function dataChange()
+//     {
+//         return $this->belongsTo(DataChange::class);
+//     }
+
+//     public function affectedRecord()
+//     {
+//         return $this->belongsTo(SchoolRevision::class, 'revision_id');
+//     }
+// }

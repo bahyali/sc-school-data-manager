@@ -14,6 +14,7 @@ interface IConflictFinder
 class ConflictFinder implements IConflictFinder
 {
     protected $records = [];
+    protected $school_id;
 
     protected $ignore = ['created_at', 'updated_at', 'id', 'hash'];
 
@@ -96,7 +97,7 @@ class ConflictFinder implements IConflictFinder
             // Search for conflicts
             if ($conflict_type = $this->detectConflict($column)) {
                 if ($this->conflictTypes[$conflict_type]['func']($values)) {
-                    $conflict = new Conflict($conflict_type, $records, $column, $values);
+                    $conflict = new Conflict($conflict_type, $records, $column, $values, $this->school_id);
 
                     if ($persist)
                         $conflict->persist();
@@ -159,5 +160,12 @@ class ConflictFinder implements IConflictFinder
             });
         }
         return $result;
+    }
+
+
+
+    function setSchoolId($id)
+    {
+        $this->school_id = $id;
     }
 }
