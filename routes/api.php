@@ -68,4 +68,8 @@ Route::get('/update-data-changes-table', [App\Http\Controllers\API\SchoolControl
 Route::get('/changed-data/{school_id}/{column?}', [App\Http\Controllers\API\SchoolController::class, 'getChangedData']);
 
 
+Route::get('/unresolved-conflict/{school_id}/{column}', [App\Http\Controllers\API\SchoolController::class, 'getUnresolvedSchoolConflictByColumn']);
+
+
+
 

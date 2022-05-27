@@ -365,4 +365,21 @@ class SchoolController extends Controller
 	}
 
 
+
+	public function getUnresolvedSchoolConflictByColumn($school_id, $column)
+	{
+		$different_values = [];
+		$change = DataChange::with(['values'])->where('school_id', $school_id)->where('column', $column)->where('status', 'new')->first();
+		if(isset($change->values)){
+			foreach($change->values as $value){
+				$different_values[] = $value->value;
+			}
+		}
+
+		return response()->json(['different_values' => $different_values], 200);
+	}
+
+
+
+
 }
