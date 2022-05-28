@@ -62,7 +62,7 @@ Route::get('/conflictor/conflicts', [App\Http\Controllers\API\SchoolController::
 
 Route::post('/change-data', [App\Http\Controllers\API\SchoolController::class, 'changeData']);
 
-Route::get('/update-data-changes-table', [App\Http\Controllers\API\SchoolController::class, 'dataChangesUpdate']);//tempo route
+// Route::get('/update-data-changes-table', [App\Http\Controllers\API\SchoolController::class, 'dataChangesUpdate']);//tempo route
 
 
 Route::get('/changed-data/{school_id}/{column?}', [App\Http\Controllers\API\SchoolController::class, 'getChangedData']);
