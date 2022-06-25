@@ -133,6 +133,7 @@ class SchoolController extends Controller
 					$value = DataChangeValue::findOrFail($value_id);
 
 					$last_revision->{$conflict->column} = $value->affectedRecord->{$conflict->column};
+					$last_revision->touch();
 
 					$record = App::make(SchoolRecord::class);
 					$record->fetchSchool($school->id);
