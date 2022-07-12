@@ -122,7 +122,9 @@ class ScrapingClosedSchool extends ScrapingGetter
 
 	public function getAddress($long_address){
 
-		$long_address = preg_split('/\r\n|\r|\n/', $long_address);
+		// $long_address = preg_split('/\r\n|\r|\n/', $long_address);
+		$long_address = array_map('trim', explode(',', $long_address));
+
 		$address = $long_address[0];
 		return strip_tags($address);
 
@@ -130,15 +132,22 @@ class ScrapingClosedSchool extends ScrapingGetter
 
 
 	public function getCity($long_address){
-		$long_address = preg_split('/\r\n|\r|\n/', $long_address);
-		$city = $long_address[1];
+		// $long_address = preg_split('/\r\n|\r|\n/', $long_address);
+		$long_address = array_map('trim', explode(',', $long_address));
+
+		//there are two types of data; data with three parts (address,city,postal-code) and data with only two parts (address,postal-code)
+		if(count($long_address) > 2 ) $city = $long_address[1]; 
+		else $city = '';
 		return strip_tags($city);
 	}
 
 
 	public function getPostalCode($long_address){
-		$long_address = preg_split('/\r\n|\r|\n/', $long_address);
-		$postal_code = $long_address[2];
+		// $long_address = preg_split('/\r\n|\r|\n/', $long_address);
+		$long_address = array_map('trim', explode(',', $long_address));
+
+		if(count($long_address) > 2 ) $postal_code = $long_address[2];
+		else $postal_code = $long_address[1];
 		return strip_tags($postal_code);
 	}
 }
