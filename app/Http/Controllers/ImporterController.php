@@ -93,7 +93,7 @@ class ImporterController extends Controller
 
 
 
-	public function crawlSchools($ds_name)
+	public function crawlSchoolsByName($ds_name)
 	{
 
 		$factory = [
@@ -111,8 +111,15 @@ class ImporterController extends Controller
 			$ds_class = new $factory[$ds_name]['class']($factory[$ds_name]['data_source']);
 			$ds_class->start();
 
-			return 'Done';
-		} else {
+
+			$factory[$ds_name]['data_source']->update([
+				'last_sync' => Carbon::now()
+			]);
+
+			return 'Crawled Successfully!';
+		} 
+
+		else {
 			return 'Data Source is deactivated!';
 		}
 	}

@@ -59,7 +59,7 @@ class ScrapingClosedSchool extends ScrapingGetter
 				$scraper_school['principal_name'] = $value[3];
 				$scraper_school['owner_business'] = $value[4];
 				$scraper_school['closed_date'] = $this->getClosingYear($closed_year);
-
+				
 				$this->storeScrapingSchool($scraper_school);
 
 				// SchoolRevision::create([
