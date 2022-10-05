@@ -117,9 +117,10 @@ class DataMixer
     public function managingDatasourcesPriorities($revisions)
     {
         $onsis_ds = DataSource::where('name','onsis_all_schools')->first();
+        $old_onsis_ds = DataSource::where('name','onsis_all_schools_old')->first();
         $onsis_items = new Collection();
         foreach ($revisions as $key => $value) {
-            if ($value["data_source_id"] == $onsis_ds->id) {
+            if ($value["data_source_id"] == $onsis_ds->id || $value["data_source_id"] == $old_onsis_ds->id) {
                 $onsis_items->push($value);
                 $revisions->forget($key);      
             }

@@ -38,7 +38,7 @@ class SchoolRecord implements ISchoolRecord
         $revision['data_source_id'] = $data_source->id;
 
         //to check if school can have Revoked + Closed statuses at the same time
-        $revision['status'] = $this->checkStatus($revision['status']);
+        if( isset($revision['status'])) $revision['status'] = $this->checkStatus($revision['status']);
 
         
         // Sort array to standardize fingerprint

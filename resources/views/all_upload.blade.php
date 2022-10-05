@@ -14,7 +14,7 @@
 	<div class="col-md-8 offset-md-4">
 
 		<label>File</label>
-		<input type="file" name="schools_file">
+		<input type="file" name="schools_file" required>
 		<button type="submit" class="btn btn-primary">
 			{{ __('Upload') }}
 		</button>

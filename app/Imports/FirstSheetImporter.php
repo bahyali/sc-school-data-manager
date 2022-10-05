@@ -19,8 +19,25 @@ class FirstSheetImporter implements WithMultipleSheets
 
     public function sheets(): array
     {
-        return [
-            new SchoolsExcelMapperImport($this->data_source)
-        ];
+
+        if($this->data_source->name == 'onsis_all_schools'){
+            return [
+                // new SchoolsExcelMapperImportMulti($this->data_source);
+                'School Details' => new SchoolsExcelMapperImportMulti($this->data_source),
+                'Affiliation' => new SchoolsExcelMapperImportMulti($this->data_source),
+                'Association' => new SchoolsExcelMapperImportMulti($this->data_source),
+                'Principal' => new SchoolsExcelMapperImportMulti($this->data_source),
+                'Address' => new SchoolsExcelMapperImportMulti($this->data_source),
+                // 'Principal' => new SchoolsPrincipalExcelMapper($this->data_source),
+            ];
+        }else{
+            return [
+                new SchoolsExcelMapperImport($this->data_source)
+            ];
+        }
     }
+
+
+
+
 }

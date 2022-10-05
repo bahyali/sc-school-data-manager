@@ -15,7 +15,7 @@ class CreateSchoolRevisionsTable extends Migration
     {
         Schema::create('school_revisions', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->integer('number');
             $table->string('principal_name')->nullable();
             $table->string('special_conditions_code')->nullable();

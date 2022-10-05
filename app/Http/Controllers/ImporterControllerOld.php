@@ -15,9 +15,6 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\SchoolRevision;
 use DB;
 use Exception;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\SchoolsExcelMapperImportMulti;
-
 
 class ImporterController extends Controller
 {
@@ -47,9 +44,6 @@ class ImporterController extends Controller
 
 		if ($data_source->checksum !== $file_checksum) {
 			 (new FirstSheetImporter($data_source))->import($file);
-
-    	 	// Excel::import(new SchoolsExcelMapperImportMulti($data_source), $file);
-
 			 $response = 'File was uploaded & processed successfully!';
 		} else {
 			$response = 'This file was uploaded before!';
