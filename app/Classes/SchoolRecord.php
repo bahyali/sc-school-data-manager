@@ -109,6 +109,8 @@ class SchoolRecord implements ISchoolRecord
         if($conflicts) $this->school->conflict = true;
         else $this->school->conflict = false;   
         
+
+        dd($conflicts);
         $this->school->save();
         
     }

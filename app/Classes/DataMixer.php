@@ -41,8 +41,6 @@ class DataMixer
 
         $remix = $this->mix($latest_revisions);
 
-        dd($remix);
-
         if ($remix)
             $school_record->addRevision($remix->toArray(), $this->data_source, false, true, false);
 
