@@ -61,7 +61,7 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
             return;
 
             if($row[1] != 668726) return;
-
+            
         $record = App::make(SchoolRecord::class);
 
         $school = $record->addSchool($array['number']);
