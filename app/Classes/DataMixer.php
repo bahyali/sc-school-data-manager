@@ -90,7 +90,6 @@ class DataMixer
                 $revisions_by_ds = $revisions_by_ds->where('id', '>=', $last_revision_id);
 
             $revisions_by_ds = $revisions_by_ds->get()
-        dd($revisions_by_ds);
         
                 // clean up each row
                 ->map(function ($rev) {
@@ -100,6 +99,7 @@ class DataMixer
                         });
                 });
 
+        dd($revisions_by_ds);
             // Convert to Support\Collection
             if ($revisions_by_ds)
                 return $this->mix($revisions_by_ds);
