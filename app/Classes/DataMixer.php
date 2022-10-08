@@ -78,7 +78,6 @@ class DataMixer
         $data_sources = $school->dataSources->pluck('id');
         $last_revision_id = $school->revision_id;
 
-        dd($data_sources);
 
         // mixed revision from each data source
         $latest_revisions = $data_sources->map(function ($ds_id) use ($school, $last_revision_id) {
@@ -91,6 +90,8 @@ class DataMixer
                 $revisions_by_ds = $revisions_by_ds->where('id', '>=', $last_revision_id);
 
             $revisions_by_ds = $revisions_by_ds->get()
+        dd($revisions_by_ds);
+        
                 // clean up each row
                 ->map(function ($rev) {
                     return collect($rev->toArray())
