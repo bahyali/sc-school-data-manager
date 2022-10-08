@@ -38,10 +38,10 @@ class DataMixer
         // Get latest revision from each data source sorted
         $latest_revisions = $this->getLatestRevisions($school);
 
+        dd($latest_revisions);
 
         $remix = $this->mix($latest_revisions);
 
-        dd($remix);
 
         if ($remix)
             $school_record->addRevision($remix->toArray(), $this->data_source, false, true, false);
