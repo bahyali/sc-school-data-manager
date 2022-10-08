@@ -47,9 +47,6 @@ class SchoolRecord implements ISchoolRecord
         $hash = md5(serialize($revision));
         $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
 
-
-        dd('asdasdasd'.$revision_model);
-
         if ($associate) {
             $this->school->lastRevision()->associate($revision_model);
             $this->school->status = $revision['status'];
