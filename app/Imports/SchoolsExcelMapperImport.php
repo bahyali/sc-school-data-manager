@@ -36,6 +36,7 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
     public function model(array $row)
     {
 
+
         $array = [];
 
         // Apply column overrides
@@ -59,10 +60,13 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
             
             return;
 
+            if($row[1] != 668726) return;
+
         $record = App::make(SchoolRecord::class);
 
         $school = $record->addSchool($array['number']);
-        $school->addRevision($array, $this->data_source);
+        $ccc = $school->addRevision($array, $this->data_source);
+        dd($ccc);
     }
 
     private function transformDate($value, $format = 'Y-m-d')
