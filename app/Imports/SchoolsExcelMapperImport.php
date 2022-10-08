@@ -65,8 +65,7 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow
         $record = App::make(SchoolRecord::class);
 
         $school = $record->addSchool($array['number']);
-        $ccc = $school->addRevision($array, $this->data_source);
-        dd($array);
+        $school->addRevision($array, $this->data_source);
     }
 
     private function transformDate($value, $format = 'Y-m-d')
