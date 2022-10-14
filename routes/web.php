@@ -49,6 +49,6 @@ Route::get('/conflict/{school_id}/{column?}', [App\Http\Controllers\ImporterCont
 
 
 
-Route::get('/principals', [App\Http\Controllers\ImporterController::class, 'principals']);
+// Route::get('/principals', [App\Http\Controllers\ImporterController::class, 'principals']);
 
 
