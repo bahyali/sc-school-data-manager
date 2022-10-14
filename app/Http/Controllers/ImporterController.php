@@ -169,4 +169,28 @@ class ImporterController extends Controller
 
 		return $this->importFromExcel($data_source, $path);
 	}
+
+
+	//Temp func
+	public function principals(){
+
+		 $revisions = SchoolRevision::where('created_at', '>=', '2022-10-04')->whereIn('data_source_id', [2,5])->get();
+
+
+		 $arr = [];
+		 foreach($revisions as $key => $rev){
+
+		 	if($rev->principal_name && $rev->principal_last_name && !str_contains($rev->principal_name, $rev->principal_last_name)){
+
+		 		$rev->principal_name = $rev->principal_name.' '.$rev->principal_last_name;
+		 		$rev->touch();
+		 		$rev->save();
+		 		$arr[] = $rev->principal_name.' '.$rev->principal_last_name;
+
+		 	}
+		 }
+
+		 return $arr;
+
+	}
 }

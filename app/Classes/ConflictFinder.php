@@ -18,7 +18,7 @@ class ConflictFinder implements IConflictFinder
 
     protected $ignore = ['created_at', 'updated_at', 'id', 'hash'];
 
-    protected $tracked_columns = ['name', 'number', 'principal_name', 'address_line_1', 'address_line_2', 'address_line_3', 'status'];
+    protected $tracked_columns = ['name', 'number', 'address_line_1', 'address_line_2'];
 
     private $conflictTypes = [];
 

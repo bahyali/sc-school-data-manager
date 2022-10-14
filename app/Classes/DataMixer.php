@@ -38,10 +38,6 @@ class DataMixer
         // Get latest revision from each data source sorted
         $latest_revisions = $this->getLatestRevisions($school);
 
-
-        // dd($latest_revisions);
-
-
         $remix = $this->mix($latest_revisions);
 
         if ($remix)
@@ -90,7 +86,7 @@ class DataMixer
                 $revisions_by_ds = $revisions_by_ds->where('id', '>=', $last_revision_id);
 
             $revisions_by_ds = $revisions_by_ds->get()
-        
+
                 // clean up each row
                 ->map(function ($rev) {
                     return collect($rev->toArray())
@@ -99,7 +95,6 @@ class DataMixer
                         });
                 });
 
-        // dd($revisions_by_ds);
             // Convert to Support\Collection
             if ($revisions_by_ds)
                 return $this->mix($revisions_by_ds);

@@ -47,3 +47,8 @@ Route::get('/remix/all', [App\Http\Controllers\ImporterController::class, 'remix
 Route::get('/conflict/{school_id}/{column?}', [App\Http\Controllers\ImporterController::class, 'getConflicts'])->name('getConflicts');
 
 
+
+
+Route::get('/principals', [App\Http\Controllers\ImporterController::class, 'principals']);
+
+

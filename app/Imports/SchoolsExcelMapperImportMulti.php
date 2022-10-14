@@ -118,6 +118,10 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
 
         $record = App::make(SchoolRecord::class);
         $school = $record->addSchool($array['number']);
+
+        if( isset($array['principal_name']) && isset($array['principal_last_name'])) $array['principal_name'] = $array['principal_name'].' '.$array['principal_last_name'];
+
+
         $school->addRevision($array, $this->data_source);
     }
 
