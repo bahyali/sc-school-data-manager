@@ -184,6 +184,7 @@ class ImporterController extends Controller
 
 		 		$rev->principal_name = $rev->principal_name.' '.$rev->principal_last_name;
 		 		$rev->touch();
+		 		$rev->school->touch();
 		 		$rev->save();
 		 		$arr[] = $rev->principal_name.' '.$rev->principal_last_name;
 
