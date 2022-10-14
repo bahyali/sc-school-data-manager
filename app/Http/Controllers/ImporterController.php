@@ -180,7 +180,7 @@ class ImporterController extends Controller
 		 $arr = [];
 		 foreach($revisions as $key => $rev){
 
-		 	if($rev->principal_name && $rev->principal_last_name && !str_contains($rev->principal_name, $rev->principal_last_name)){
+		 	if($rev->principal_name && $rev->principal_last_name && !str_contains(strtolower($rev->principal_name), strtolower($rev->principal_last_name)) ){
 
 		 		$rev->principal_name = $rev->principal_name.' '.$rev->principal_last_name;
 		 		$rev->touch();
