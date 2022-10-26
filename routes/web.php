@@ -37,7 +37,7 @@ Route::post('/import/excel', [App\Http\Controllers\ImporterController::class, 'e
 
 // Route::get('/crawl/closed', [App\Http\Controllers\ImporterController::class, 'storeClosedSchools'])->name('storeClosedSchools');
 
-Route::get('/crawl/{ds_name}', [App\Http\Controllers\ImporterController::class, 'crawlSchools'])->name('crawlSchools');
+Route::get('/crawl/{ds_name}', [App\Http\Controllers\ImporterController::class, 'crawlSchoolsByName'])->name('crawlSchoolsByName');
 
 
 

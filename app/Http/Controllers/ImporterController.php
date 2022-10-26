@@ -102,6 +102,7 @@ class ImporterController extends Controller
 	public function crawlSchoolsByName($ds_name)
 	{
 
+
 		$factory = [
 			'revoked' => [
 				'class' => ScrapingRevokedSchool::class,
@@ -115,7 +116,7 @@ class ImporterController extends Controller
 
 		if ($factory[$ds_name]['data_source']->active) {
 			$ds_class = new $factory[$ds_name]['class']($factory[$ds_name]['data_source']);
-			$ds_class->start();
+			return $ds_class->start();
 
 
 			$factory[$ds_name]['data_source']->update([

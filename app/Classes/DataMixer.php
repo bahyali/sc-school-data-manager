@@ -40,8 +40,15 @@ class DataMixer
 
         $remix = $this->mix($latest_revisions);
 
-        if ($remix)
+        if ($remix){
+
+            if($remix['status'] == 'active'){
+                $remix['revoked_date'] = NULL; 
+                $remix['closed_date'] = NULL; 
+            }
+            
             $school_record->addRevision($remix->toArray(), $this->data_source, false, true, false);
+        }
 
         return $remix;
     }
