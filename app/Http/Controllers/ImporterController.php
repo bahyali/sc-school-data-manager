@@ -116,7 +116,7 @@ class ImporterController extends Controller
 
 		if ($factory[$ds_name]['data_source']->active) {
 			$ds_class = new $factory[$ds_name]['class']($factory[$ds_name]['data_source']);
-			return $ds_class->start();
+			$ds_class->start();
 
 
 			$factory[$ds_name]['data_source']->update([
