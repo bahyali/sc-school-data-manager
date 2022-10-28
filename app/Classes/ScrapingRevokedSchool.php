@@ -16,59 +16,54 @@ class ScrapingRevokedSchool extends ScrapingGetter
 	{
 
 		$crawler = $this->newCrawler();
-		$nodeValues = $crawler->filter('#right_column ol li');
-		return $this->scrapeAndStore($nodeValues);
+		// $nodeValues = $crawler->filter('#right_column ol li');
+        $whole_page_data = $crawler->filter('.body-field table tbody');
+        $whole_page_data->each(function ($node) use (&$arr) {
+			$arr[] = $node->html();
+		});
+
+        $html_checksum = md5(json_encode($arr));
+		if ($this->data_source->checksum == $html_checksum) {
+		} else {
+
+			$whole_page_data = $crawler->filter('.body-field h3:contains("school year")');
+			$this->scrapeAndStore($whole_page_data);
+        		// var_dump($whole_page_data);	
+		}
+
+
+		$this->dataSourceUpdate($html_checksum);
 	}
 
 
 	public function scrapeAndStore($nodeValues)
 	{
 
-
-		$arr = [];
-		$nodeValues->each(function ($node) use (&$arr) {
-			$arr[] = $node->html();
-		});
-		// $arr = $nodeValues->map(function ($node) { return $node->html();});
-
-		$html_checksum = md5(json_encode($arr));
-
-
-		if ($this->data_source->checksum == $html_checksum) {
-			// return 'This page scrapped before!';
-		} else {
-			$nodeValues->each(function ($node) {
-
-				$tags = explode("\n", strip_tags($node->html()));
-				$tags = array_filter($tags);
-
-				$scraper_school = [];
-				$scraper_school['name'] = $this->getSchoolName($tags[0]);
-				$scraper_school['number'] = $this->getSchoolNumber($tags[0]);
-				$scraper_school['address_line_1'] = trim($tags[1]);
-				$scraper_school['address_line_2'] = $this->getCity($tags[2]);
-				$scraper_school['address_line_3'] = $this->getPostalCode($tags[2]);
-				$scraper_school['revoked_date'] = $this->getRevokedDate($node->text());
-				$scraper_school['principal_name'] = '';
-				$scraper_school['owner_business'] = '';
-
-				if (count($tags) == 6) {
-					$scraper_school['principal_name'] = $this->getPrincipalName($tags[3]);
-					$scraper_school['owner_business'] = $this->getOwnerBusiness($tags[4]);
-				}
-
-
-				if (count($tags) == 5) {
-					$scraper_school['principal_name'] = $this->getPrincipalName($tags[3]);
-					$scraper_school['owner_business'] = $this->getOwnerBusiness($tags[3]);
-				}
-
-				return $this->storeScrapingSchool($scraper_school);
+		$nodeValues->each(function ($node) {
+			$table_content = $node->nextAll()->first()->filter('table tbody')->filter('tr')->each(function ($tr, $i) {
+				return $tr->filter('td')->each(function ($td, $i) {
+					if($i == 2) return trim($td->html());
+					else return trim($td->text());
+				});
 			});
-		}
 
-		$this->dataSourceUpdate($html_checksum);
 
+			foreach ($table_content as $value) {
+				$scraper_school = [];
+				$scraper_school['name'] = $value[0];
+				$scraper_school['number'] = trim($value[1]);
+
+				$scraper_school['address_line_1'] = $value[2];
+				$scraper_school['street'] = $this->getStreet($value[2]);
+				$scraper_school['postal_code'] = $this->getPostalCode($value[2]);
+
+				$scraper_school['revoked_date'] = $this->getRevokedDate($value[3]);
+
+
+				// var_dump($scraper_school);
+				$this->storeScrapingSchool($scraper_school);
+			}
+		});
 	}
 
 
@@ -103,13 +98,15 @@ class ScrapingRevokedSchool extends ScrapingGetter
 	}
 
 
-	public function getPostalCode($string){
-		$string = trim($string);
-		$postal_code = explode('ON', $string);
-		if(isset($postal_code[1])){
-			$postal_code = $postal_code[1];
-			return trim($postal_code);
-		}else return '';
 
-	}
+
+    private function getRevokedDate($value)
+    {
+
+	 	$clean_string = preg_replace('/[\s]+/mu', ' ', $value);//to remove double spaces
+
+    	return Carbon::createFromFormat('M d, Y', $clean_string)->format('Y-m-d');
+
+    }
+
 }

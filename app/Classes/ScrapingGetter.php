@@ -37,12 +37,12 @@ class ScrapingGetter
     }
 
 
-    public static function getRevokedDate($string)
-    {
-        $revoked_date = explode('revoked effective', $string);
-        $revoked_date = trim($revoked_date[1]);
-        return \Carbon\Carbon::parse($revoked_date);
-    }
+    // public static function getRevokedDate($string)
+    // {
+    //     $revoked_date = explode('revoked effective', $string);
+    //     $revoked_date = trim($revoked_date[1]);
+    //     return \Carbon\Carbon::parse($revoked_date);
+    // }
 
     public function storeScrapingSchool($array)
     {
@@ -73,4 +73,20 @@ class ScrapingGetter
             'checksum' => $checksum
         ]);
     }
+
+
+    public function getPostalCode($long_address){
+        $postal_code = substr($long_address, -8);
+        return preg_replace('/[^\p{L}\p{N}\s]/u', '', $postal_code);
+    }
+
+
+
+    public function getStreet($long_address){
+        $street = explode(',', $long_address);
+        // return $street[0];
+        return str_replace("<br>", " ", $street[0]);
+    }
+
+
 }

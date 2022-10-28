@@ -102,7 +102,8 @@ class ImporterController extends Controller
 	public function crawlSchoolsByName($ds_name)
 	{
 
-
+		ini_set('max_execution_time', 600); //10 minutes
+	
 		$factory = [
 			'revoked' => [
 				'class' => ScrapingRevokedSchool::class,

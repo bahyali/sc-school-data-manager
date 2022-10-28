@@ -89,7 +89,7 @@ class DataSourcesSeeder extends Seeder
                     'overrides' => [
                         'status' => 'revoked'
                     ],
-                    'url' => 'http://www.edu.gov.on.ca/eng/general/elemsec/privsch/revoked.html#1920'
+                    'url' => 'https://www.ontario.ca/page/private-schools-cannot-grant-credits-towards-ontario-secondary-school-diploma'
                 ],
                 'resource' => 'html',
                 'url' => NULL,
