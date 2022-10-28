@@ -94,7 +94,8 @@ class SchoolRecord implements ISchoolRecord
     public function checkConflict($new_rev, $last_rev)
     {
 
-        $search_columns = ['name', 'principal_name','address_line_1'];
+        // $search_columns = ['name', 'principal_name','address_line_1'];
+        $search_columns = ['name','address_line_1'];
         $revs = SchoolRevision::select($search_columns)->whereIn('id', [$new_rev->id, $last_rev->id])->get();
         $conflicts = [];
         foreach ($revs as $rev) {

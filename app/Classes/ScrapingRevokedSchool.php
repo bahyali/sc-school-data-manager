@@ -59,6 +59,10 @@ class ScrapingRevokedSchool extends ScrapingGetter
 
 				$scraper_school['revoked_date'] = $this->getRevokedDate($value[3]);
 
+				$scraper_school['ossd_credits_offered'] = 'yes';
+				$scraper_school['type'] = 'Private Inspected';
+
+
 
 				// var_dump($scraper_school);
 				$this->storeScrapingSchool($scraper_school);
