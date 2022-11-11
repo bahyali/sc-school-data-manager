@@ -40,11 +40,18 @@ class DataMixer
 
         $remix = $this->mix($latest_revisions);
 
+
         if ($remix){
 
             if($remix['status'] == 'active'){
                 $remix['revoked_date'] = NULL; 
                 $remix['closed_date'] = NULL; 
+            }
+
+
+            //to modify OSSD if school type is private inspected
+            if($remix['type'] && strtolower($remix['type']) == 'private inspected'){
+                $remix['ossd_credits_offered'] = 'yes'; 
             }
             
             $school_record->addRevision($remix->toArray(), $this->data_source, false, true, false);

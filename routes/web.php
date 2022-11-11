@@ -52,3 +52,10 @@ Route::get('/conflict/{school_id}/{column?}', [App\Http\Controllers\ImporterCont
 Route::get('/principals', [App\Http\Controllers\ImporterController::class, 'principals']);
 
 
+
+
+// Route::get('/test-record', [App\Http\Controllers\ImporterController::class, 'testRecord']);
+Route::get('/school-type', [App\Http\Controllers\ImporterController::class, 'schoolType']);
+
+
+

@@ -196,4 +196,49 @@ class ImporterController extends Controller
 		 return $arr;
 
 	}
+
+
+
+	public function schoolType(){
+
+
+		$data_source = DataSource::where('name', 'schoolcred_engine')->first();
+
+	 	$revisions = SchoolRevision::whereIn('type', ['private inspected', 'Private Inspected'])->where('data_source_id', $data_source->id)->get();
+
+	 	foreach($revisions as $key => $rev){
+
+		 	if($rev->ossd_credits_offered && strtolower($rev->ossd_credits_offered) != 'no' ){}
+
+	 		else{
+
+		 		$rev->ossd_credits_offered = 'yes';
+		 		$rev->touch();
+		 		$rev->school->touch();
+		 		$rev->save();
+
+		 	}
+		 }
+
+		 return 'done';
+
+	}
+
+
+
+
+	public function testRecord(){
+
+		$record = App::make(SchoolRecord::class);
+		$data_source = DataSource::find(46);
+        $array['data_source_id'] = 46;
+        $array['status'] = 'revoked';
+        $array['name'] = 'test for school';
+        $array['number'] = '123456';
+        $array['principal_name'] = 'test principal_name';
+        $array['type'] = 'Private Inspected';
+        $school = $record->addSchool($array['number']);
+        $school->addRevision($array, $data_source);
+        return'done';
+	}
 }
