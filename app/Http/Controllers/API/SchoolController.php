@@ -142,7 +142,7 @@ class SchoolController extends Controller
 					$value->selected = 1;
 					$value->save();
 
-					$conflict->status = 'done';
+					$conflict->status = 'resolved';
 					$conflict->save();
 				} else {
 					$conflict->values()->create([
@@ -151,7 +151,7 @@ class SchoolController extends Controller
 						'value' => $last_revision[$conflict->column]
 					]);
 
-					$conflict->status = 'keep';
+					$conflict->status = 'resolved';
 					$conflict->save();
 				}
 
@@ -300,7 +300,7 @@ class SchoolController extends Controller
 		$old_data = DataChangeValue::find($request->old_data)
 					->update([
 						'selected' => false,
-						'type' => 'changed_data'
+						'type' => 'old_data'
 					]);
 
 		$current_data = DataChangeValue::find($request->current_data);
@@ -310,7 +310,7 @@ class SchoolController extends Controller
 					]);
 
 		$data_change = $current_data->dataChange;	
-		$data_change->update(['status' => 'done']);
+		$data_change->update(['status' => 'resolved_declare']);
 
 		$school = $data_change->school;
 		$school->update(['changed_data' => true]);
@@ -344,11 +344,14 @@ class SchoolController extends Controller
 
 
 
+
+
 	public function getChangedData($school_id, $column = null){
 
-		$data_changes = DataChange::where('school_id', $school_id)->where('status', 'done');
+		$data_changes = DataChange::where('school_id', $school_id)->where('status', 'resolved_declare');
 		($column) ? $data_changes->where('column', $column) : '';
 		$data_changes = $data_changes->get();
+
 		if(!count($data_changes)) return response()->json(['no changes available'], 204);
 
 		else{
@@ -356,7 +359,7 @@ class SchoolController extends Controller
 			$arr = [];
 			foreach($data_changes as $data_change){
 				foreach($data_change->values as $value){
-					if($value->selected == false && $value->type == 'changed_data') $arr[$data_change->column] [] = $value->value;
+					if($value->selected == false && $value->type == 'old_data') $arr[$data_change->column] [] = $value->value;
 				}
 			}
 
@@ -370,7 +373,7 @@ class SchoolController extends Controller
 	public function getUnresolvedSchoolConflictByColumn($school_id, $column)
 	{
 		$different_values = [];
-		$change = DataChange::with(['values'])->where('school_id', $school_id)->where('column', $column)->where('status', 'new')->first();
+		$change = DataChange::with(['values'])->where('school_id', $school_id)->where('column', $column)->where('status', 'not_resolved')->first();
 		if(isset($change->values)){
 			foreach($change->values as $value){
 				$different_values[] = $value->value;

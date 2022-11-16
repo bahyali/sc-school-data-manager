@@ -14,7 +14,7 @@ class AddStatusToDataChangesTable extends Migration
     public function up()
     {
         Schema::table('data_changes', function (Blueprint $table) {
-            $table->string('status')->default('new');
+            $table->string('status')->default('not_resolved');
         });
     }
 
