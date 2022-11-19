@@ -297,8 +297,9 @@ class SchoolController extends Controller
 
 	public function changeData(Request $request){
 
-		$old_data = DataChangeValue::find($request->old_data)
-					->update([
+		$old_data = DataChangeValue::find($request->old_data);
+
+		$old_data->update([
 						'selected' => false,
 						'type' => 'old_data'
 					]);
@@ -313,7 +314,10 @@ class SchoolController extends Controller
 		$data_change->update(['status' => 'resolved_declare']);
 
 		$school = $data_change->school;
-		$school->update(['changed_data' => true]);
+		$school->update([
+			'changed_data' => true,
+			'old_name' => $old_data->value
+		]);
 
 		$last_revision = $school->lastRevision()->first();
 		$last_revision->update([
@@ -333,6 +337,8 @@ class SchoolController extends Controller
 
 
 
+
+	//TEMP
 	public function dataChangesUpdate(){
 
 		foreach(DataChange::all() as $dataChange){
