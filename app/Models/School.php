@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\DataSource;
+
 
 class School extends Model
 {
@@ -42,6 +44,8 @@ class School extends Model
 
     public function latestRevisions()
     {
-        return $this->hasMany(SchoolRevision::class)->where('data_source_id','!=','5')->orderBy('created_at', 'DESC');
+        $mixer_source = DataSource::where('name', 'schoolcred_engine')
+            ->first();
+        return $this->hasMany(SchoolRevision::class)->where('data_source_id','!=',$mixer_source->id)->orderBy('created_at', 'DESC');
     }
 }

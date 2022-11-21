@@ -85,9 +85,6 @@ class ConflictFinder implements IConflictFinder
         if (count($this->records) <= 1)
             return; // changes tracking has to be between at least two records.
 
-
-        return  $this->records;
-
         $changes = $this->findChanges($this->groupColumns($this->records));
 
         $conflicts = [];
@@ -142,8 +139,6 @@ class ConflictFinder implements IConflictFinder
 
     private function groupColumns($records)
     {
-
-        return $records;
         $result = [];
 
         foreach ($records as $record) {
