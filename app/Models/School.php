@@ -38,4 +38,10 @@ class School extends Model
     {
         return $this->belongsTo(SchoolRevision::class, 'revision_id');
     }
+
+
+    public function latestRevisions()
+    {
+        return $this->hasMany(SchoolRevision::class)->orderBy('created_at', 'DESC');
+    }
 }

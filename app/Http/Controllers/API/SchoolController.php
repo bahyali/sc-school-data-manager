@@ -211,7 +211,7 @@ class SchoolController extends Controller
 		$conflicts = [];
 		foreach (School::with('revisions')->limit(10000000)->cursor() as $school) {
 			$conflictor = new ConflictFinder();
-			$conflictor->setRecords($school->revisions->toArray());
+			$conflictor->setRecords($school->latestRevisions->toArray());
 			$conflictor->setSchoolId($school->id);
 			$result = $conflictor->run(true);
 			if ($result)
