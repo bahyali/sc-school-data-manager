@@ -44,8 +44,8 @@ class School extends Model
 
     public function latestRevisions()
     {
-        $mixer_source = DataSource::where('name', 'schoolcred_engine')
-            ->first();
-        return $this->hasMany(SchoolRevision::class)->where('data_source_id','!=',$mixer_source->id)->orderBy('created_at', 'DESC');
+        $internal_sources = DataSource::whereIn('name', ['schoolcred_engine', 'conflict_fixed'])
+            ->pluck('id');
+        return $this->hasMany(SchoolRevision::class)->whereNotIn('data_source_id',$internal_sources)->orderBy('created_at', 'DESC');
     }
 }
