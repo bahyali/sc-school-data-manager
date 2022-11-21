@@ -42,6 +42,6 @@ class School extends Model
 
     public function latestRevisions()
     {
-        return $this->hasMany(SchoolRevision::class)->orderBy('created_at', 'DESC');
+        return $this->hasMany(SchoolRevision::class)->where('data_source_id','!=','5')->orderBy('created_at', 'DESC');
     }
 }

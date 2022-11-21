@@ -213,7 +213,7 @@ class SchoolController extends Controller
 			$conflictor = new ConflictFinder();
 			$conflictor->setRecords($school->latestRevisions->toArray());
 			$conflictor->setSchoolId($school->id);
-			$result = $conflictor->run(true);
+			return $result = $conflictor->run(true);
 			if ($result)
 				array_push($conflicts, $result);
 		}
