@@ -230,15 +230,15 @@ class ImporterController extends Controller
 	public function testRecord(){
 
 		$record = App::make(SchoolRecord::class);
-		$data_source = DataSource::find(46);
-        $array['data_source_id'] = 46;
+		$data_source = DataSource::find(3);
+        $array['data_source_id'] = 3;
         $array['status'] = 'revoked';
         $array['name'] = 'test for school';
         $array['number'] = '123456';
         $array['principal_name'] = 'test principal_name';
         $array['type'] = 'Private Inspected';
         $school = $record->addSchool($array['number']);
-        $school->addRevision($array, $data_source);
+        return $school->addRevision($array, $data_source);
         return'done';
 	}
 }

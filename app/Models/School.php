@@ -46,6 +46,6 @@ class School extends Model
     {
         $internal_sources = DataSource::whereIn('name', ['schoolcred_engine', 'conflict_fixed'])
             ->pluck('id');
-        return $this->hasMany(SchoolRevision::class)->whereNotIn('data_source_id',$internal_sources)->orderBy('created_at', 'DESC');
+        return $this->hasMany(SchoolRevision::class)->whereNotIn('data_source_id',$internal_sources)->orderBy('updated_at', 'DESC');
     }
 }

@@ -44,11 +44,12 @@ class SchoolRecord implements ISchoolRecord
         // Sort array to standardize fingerprint
         ksort($revision);
 
-        $hash = md5(serialize($revision));
+        $hash = '7dee363d5898ca036814e25a6ee4ffd5';
         $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
 
+        $revision_model->touch();
+        return $revision_model;
 
-        // dd($revision_model);
 
         if ($associate) {
             $this->school->lastRevision()->associate($revision_model);
