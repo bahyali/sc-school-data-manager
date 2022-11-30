@@ -50,11 +50,11 @@ class DataMixer
 
 
             //to modify OSSD if school type is private inspected
-            if($remix['type'] && strtolower($remix['type']) == 'private inspected'){
+            if(isset($remix['type']) && strtolower($remix['type']) == 'private inspected'){
                 $remix['ossd_credits_offered'] = 'yes'; 
             }
             
-            $school_record->addRevision($remix->toArray(), $this->data_source, false, true, false);
+            $school_record->addRevision($remix->toArray(), $this->data_source, false, true, false, true);
         }
 
         return $remix;
@@ -78,26 +78,34 @@ class DataMixer
     private function getLatestRevisions($school)
     {
         // Order of merging
-        $SORT = [
-            'active',
-            'revoked',
-            'closed',
-            'revoked, closed'
-        ];
+        // $SORT = [
+        //     'active',
+        //     'revoked',
+        //     'closed',
+        //     'revoked, closed'
+        // ];
+
+        $SORT = DataSource::orderBy('priority','DESC')->pluck('id')->toArray();
 
         $data_sources = $school->dataSources->pluck('id');
         $last_revision_id = $school->revision_id;
 
+        $last_revision_updated_at = ($last_revision_id) ? $school->lastRevision->updated_at->subMinute()->toDateTimeString() : NULL;
+
+        // var_dump($last_revision_updated_at->subMinute()->toDateTimeString());
+        // return;
+
 
         // mixed revision from each data source
-        $latest_revisions = $data_sources->map(function ($ds_id) use ($school, $last_revision_id) {
+        $latest_revisions = $data_sources->map(function ($ds_id) use ($school, $last_revision_id, $last_revision_updated_at) {
             $revisions_by_ds = $school->revisions()
                 ->byDataSourceId($ds_id)
                 ->oldest();
 
             // Get latest revision and new ones only
-            if ($last_revision_id)
-                $revisions_by_ds = $revisions_by_ds->where('id', '>=', $last_revision_id);
+             if ($last_revision_id)
+                // $revisions_by_ds = $revisions_by_ds->where('id', '>=', $last_revision_id);
+                $revisions_by_ds = $revisions_by_ds->where('updated_at', '>=', $last_revision_updated_at);
 
             $revisions_by_ds = $revisions_by_ds->get()
 
@@ -119,7 +127,8 @@ class DataMixer
         })->filter(function ($revision) {
             return $revision;
         })->sortBy(function ($revision) use ($SORT) {
-            return array_search($revision->get('status'), $SORT);
+            // return array_search($revision->get('status'), $SORT);
+            return array_search($revision->get('data_source_id'), $SORT);
         });
 
         if($latest_revisions){

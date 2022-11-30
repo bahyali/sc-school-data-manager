@@ -36,7 +36,7 @@ class ImporterController extends Controller
 
 	public function importFromExcel($data_source, $file)
 	{
-		ini_set('max_execution_time', 600); //10 minutes
+		ini_set('max_execution_time', 1800); //10 minutes
 		// Force excel to take only first sheet temporarily.
 		// TODO Handle multiple sheet definitions
 
@@ -229,16 +229,26 @@ class ImporterController extends Controller
 
 	public function testRecord(){
 
+		// [44,45,46,47];
 		$record = App::make(SchoolRecord::class);
-		$data_source = DataSource::find(3);
-        $array['data_source_id'] = 3;
-        $array['status'] = 'revoked';
-        $array['name'] = 'test for school';
+		$data_source = DataSource::find(47);
+        $array['data_source_id'] = $data_source->id;
+        $array['status'] = 'revoksadasded';
+        $array['name'] = 'lalalall';
         $array['number'] = '123456';
-        $array['principal_name'] = 'test principal_name';
-        $array['type'] = 'Private Inspected';
+        $array['principal_name'] = 'lalalall';
+        $array['special_conditions_code'] = 'true';
+        $array['address_line_1'] = 'lalalall';
+        $array['address_line_2'] = 'lalalall';
+        $array['address_line_3'] = '555555555555555555';
+        $array['country'] = '555555555555555555';
+        $array['telephone'] = '555555555555555555';
+        // $array['teachers_num'] = 20;
+        // $array['oct_teachers'] = 11;
+        $array['fax'] = 'closed';
+
         $school = $record->addSchool($array['number']);
-        return $school->addRevision($array, $data_source);
+        $school->addRevision($array, $data_source);
         return'done';
 	}
 }

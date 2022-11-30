@@ -47,6 +47,7 @@ class DataSourcesSeeder extends Seeder
                 'resource' => 'excel',
                 'url' => NULL,
                 'active' => 1,
+                'priority' => 1,
             ],
 
             [
@@ -94,6 +95,7 @@ class DataSourcesSeeder extends Seeder
                 'resource' => 'html',
                 'url' => NULL,
                 'active' => 1,
+                'priority'  => 4,
             ],
             [
                 'name'  => 'closed_schools',
@@ -107,6 +109,7 @@ class DataSourcesSeeder extends Seeder
                 'resource' => 'html',
                 'url' => NULL,
                 'active' => 1,
+                'priority'  => 3,
             ],
             [
                 'name'  => 'schoolcred_engine',
@@ -114,6 +117,7 @@ class DataSourcesSeeder extends Seeder
                 'title' => 'Auto Mixer',
                 'resource' => 'auto_mixer',
                 'url' => NULL,
+                'priority'  => 2,
             ],
 
             [
@@ -200,6 +204,7 @@ class DataSourcesSeeder extends Seeder
                 ],
                 'resource' => 'excel',
                 'url' => NULL,
+                'priority' => 5,
             ]
         ];
 

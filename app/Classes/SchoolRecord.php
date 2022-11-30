@@ -5,6 +5,7 @@ namespace App\Classes;
 use App\Models\School;
 use App\Models\DataSource;
 use App\Models\SchoolRevision;
+use App\Models\DataChange;
 
 
 use Exception;
@@ -30,7 +31,7 @@ class SchoolRecord implements ISchoolRecord
         return $this;
     }
 
-    public function addRevision($revision, $data_source, $remix = true, $associate = false, $check_conflict = true)
+    public function addRevision($revision, $data_source, $remix = true, $associate = false, $check_conflict = true, $check_status = false)
     {
         if (!$this->school)
             throw new Exception("We need a school to create a revision!");
@@ -38,8 +39,10 @@ class SchoolRecord implements ISchoolRecord
         $revision['data_source_id'] = $data_source->id;
 
         //to check if school can have Revoked + Closed statuses at the same time
-        if( isset($revision['status'])) $revision['status'] = $this->checkStatus($revision['status']);
-
+        if($check_status){
+            // if( isset($revision['status'])) $revision['status'] = $this->checkStatus($revision['status']);
+            if( isset($revision['status']) && $this->school->lastRevision()->first()) $revision['status'] = $this->checkStatusForMixingRevision($revision['status']);
+        }
         
         // Sort array to standardize fingerprint
         ksort($revision);
@@ -128,6 +131,71 @@ class SchoolRecord implements ISchoolRecord
         
         return $incoming_status;
 
+    }
+
+
+    public function checkStatusForMixingRevision($incoming_status){
+
+        $last_revision_updated_at = $this->school->lastRevision->updated_at->toDateTimeString();
+        $revisions = SchoolRevision::select('id','status')->where('school_id', $this->school->id)->where('updated_at', '>=', $last_revision_updated_at)->orderBy('id', 'DESC')->get();
+
+        $statuses = array_column($revisions->toArray(), 'status');
+
+
+
+        if(count(array_unique($statuses)) === 1) return $incoming_status; //this means all statuses are the same
+
+
+        if(!in_array('active', $statuses)) return 'revoked, closed'; //this means statuses exists only in closed and revoked
+
+
+        else {
+
+            $active_key = array_search('active', array_column($revisions->toArray(), 'status'));
+            $not_active_key = !array_search('active', array_column($revisions->toArray(), 'status'));
+
+             $hash = md5(serialize([
+                'type' => 'change',
+                'column' => 'status',
+                'values' => ['active', $revisions[$not_active_key]->status],
+                'school_id' => $this->school->id
+            ]));
+
+            $dataChange = DataChange::updateOrCreate([
+                'type' => 'change',
+                'column' => 'status',
+                'hash' => $hash,
+                'school_id' => $this->school->id
+                ],
+                [
+                'hash' => $hash
+                ]
+            );
+
+
+            $dataChange->values()->updateOrCreate([
+                'data_change_id' => $dataChange->id,
+                'revision_id' => $revisions[$active_key]->id,
+                'value' => 'active'
+            ]);
+
+
+            $dataChange->values()->updateOrCreate([
+                'data_change_id' => $dataChange->id,
+                'revision_id' => $revisions[$not_active_key]->id,
+                'value' => $revisions[$not_active_key]->status
+            ]);
+
+            return $incoming_status;
+
+        } 
+
+
+
+
+
+        
+        
     }
 }
 
