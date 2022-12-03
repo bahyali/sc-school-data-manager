@@ -139,7 +139,7 @@ class SchoolRecord implements ISchoolRecord
         $last_revision_updated_at = $this->school->lastRevision->updated_at->toDateTimeString();
         $ignored_data_sources = DataSource::whereNotIn('resource', ['auto_mixer', 'conflict_fixed'])->pluck('id');
 
-        $revisions = SchoolRevision::select('id','status')->where('school_id', $this->school->id)->where('data_source_id', $ignored_data_sources)->where('updated_at', '>=', $last_revision_updated_at)->orderBy('id', 'DESC')->get();
+        $revisions = SchoolRevision::select('id','status')->where('school_id', $this->school->id)->whereIn('data_source_id', $ignored_data_sources)->where('updated_at', '>=', $last_revision_updated_at)->orderBy('id', 'DESC')->get();
 
 
         $statuses = array_column($revisions->toArray(), 'status');
