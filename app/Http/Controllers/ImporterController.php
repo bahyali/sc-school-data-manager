@@ -231,7 +231,7 @@ class ImporterController extends Controller
 
 		// [44,45,46,47];
 		$record = App::make(SchoolRecord::class);
-		$data_source = DataSource::find(47);
+		$data_source = DataSource::find(1);
         $array['data_source_id'] = $data_source->id;
         $array['status'] = 'revoksadasded';
         $array['name'] = 'lalalall';

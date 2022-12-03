@@ -137,7 +137,10 @@ class SchoolRecord implements ISchoolRecord
     public function checkStatusForMixingRevision($incoming_status){
 
         $last_revision_updated_at = $this->school->lastRevision->updated_at->toDateTimeString();
-        $revisions = SchoolRevision::select('id','status')->where('school_id', $this->school->id)->where('updated_at', '>=', $last_revision_updated_at)->orderBy('id', 'DESC')->get();
+        $ignored_data_sources = DataSource::whereNotIn('resource', ['auto_mixer', 'conflict_fixed'])->pluck('id');
+
+        $revisions = SchoolRevision::select('id','status')->where('school_id', $this->school->id)->where('data_source_id', $ignored_data_sources)->where('updated_at', '>=', $last_revision_updated_at)->orderBy('id', 'DESC')->get();
+
 
         $statuses = array_column($revisions->toArray(), 'status');
 
