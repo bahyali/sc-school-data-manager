@@ -31,7 +31,7 @@ class SchoolRecord implements ISchoolRecord
         return $this;
     }
 
-    public function addRevision($revision, $data_source, $remix = true, $associate = false, $check_conflict = true, $check_status = false)
+    public function addRevision($revision, $data_source, $remix = true, $associate = false, $check_conflict = true, $check_status = false, $fill_dates = false)
     {
         if (!$this->school)
             throw new Exception("We need a school to create a revision!");
@@ -56,20 +56,6 @@ class SchoolRecord implements ISchoolRecord
         // dd($revision_model);
 
         if ($associate) {
-
-            if(!$remix && $revision['status'] != 'active'){
-
-                $revoked_data_row = SchoolRevision::where('school_id', $this->school->id)->where('revoked_date', '!=', NULL)->latest()->first();
-                $closed_date_row = SchoolRevision::where('school_id', $this->school->id)->where('closed_date', '!=', NULL)->latest()->first();
-
-
-                if($revoked_data_row && $revision_model->revoked_date == NULL) $revision_model->revoked_date = $revoked_data_row->revoked_date;
-                if($closed_date_row && $revision_model->closed_date == NULL) $revision_model->closed_date = $closed_date_row->closed_date;
-
-                $revision_model->save();
-
-
-            }
             $this->school->lastRevision()->associate($revision_model);
             $this->school->status = $revision['status'];
             $this->school->save();
@@ -82,6 +68,34 @@ class SchoolRecord implements ISchoolRecord
 
         if ($remix)
             $this->remix();
+
+
+        if ($fill_dates){
+
+            if($revision['status'] != 'active'){
+
+                $revoked_data_row = SchoolRevision::where('school_id', $this->school->id)->where('revoked_date', '!=', NULL)->latest()->first();
+                $closed_date_row = SchoolRevision::where('school_id', $this->school->id)->where('closed_date', '!=', NULL)->latest()->first();
+                $last_revision = $this->school->lastRevision()->first();
+
+
+                if($revoked_data_row && $revision_model->revoked_date == NULL && $last_revision && $last_revision->revoked_date == NULL) {
+                    $revision_model->revoked_date = $revoked_data_row->revoked_date;
+                    $last_revision->revoked_date = $revoked_data_row->revoked_date;
+                }
+                if($closed_date_row && $revision_model->closed_date == NULL && $last_revision && $last_revision->closed_date == NULL) {
+                    $revision_model->closed_date = $closed_date_row->closed_date;
+                    $last_revision->closed_date = $closed_date_row->closed_date;
+                }
+
+                $revision_model->save();
+                $revision_model->touch();
+                $last_revision->save();
+                $last_revision->touch();
+
+            }
+
+        }
 
         return $this;
     }
