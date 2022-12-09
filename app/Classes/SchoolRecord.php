@@ -71,7 +71,7 @@ class SchoolRecord implements ISchoolRecord
 
 
         if ($fill_dates && $revision['status'] != 'active' && $this->school->lastRevision()->first())
-            $this->fillDates();
+            $this->fillDates($revision_model);
 
 
         return $this;
@@ -202,7 +202,7 @@ class SchoolRecord implements ISchoolRecord
 
 
 
-    public function fillDates(){
+    public function fillDates($revision_model){
 
         $revoked_data_row = SchoolRevision::where('school_id', $this->school->id)->where('revoked_date', '!=', NULL)->latest()->first();
         $closed_date_row = SchoolRevision::where('school_id', $this->school->id)->where('closed_date', '!=', NULL)->latest()->first();

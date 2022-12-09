@@ -248,7 +248,7 @@ class ImporterController extends Controller
         $array['fax'] = 'closed';
 
         $school = $record->addSchool($array['number']);
-        $school->addRevision($array, $data_source, false, true);
+        $school->addRevision($array, $data_source, false, false, false, false, true);
         return'done';
 	}
 }
