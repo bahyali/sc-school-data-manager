@@ -145,11 +145,13 @@ class SchoolController extends Controller
 						$school->status = $value->affectedRecord->{$conflict->column};
             			$school->save();
 
-
 					}
 					else {
 						$record->addRevision($last_revision->toArray(), $ds, false, false, false, false, false);
 					}
+
+
+        			$school->touch();
 
 					$value->selected = 1;
 					$value->save();
