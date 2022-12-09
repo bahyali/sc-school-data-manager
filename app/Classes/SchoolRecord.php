@@ -56,6 +56,15 @@ class SchoolRecord implements ISchoolRecord
         // dd($revision_model);
 
         if ($associate) {
+
+            if(!$remix && $revision['status'] != 'active'){
+                $revoked_data = SchoolRevision::where('revoked_date', '!=', NULL)->latest()->first();
+                $closed_date = SchoolRevision::where('closed_date', '!=', NULL)->latest()->first();
+
+                if($revoked_data) $revision_model['revoked_date'] = $revoked_date;
+                if($closed_date) $revision_model['closed_date'] = $closed_date;
+
+            }
             $this->school->lastRevision()->associate($revision_model);
             $this->school->status = $revision['status'];
             $this->school->save();
@@ -139,7 +148,7 @@ class SchoolRecord implements ISchoolRecord
         $last_revision_updated_at = $this->school->lastRevision->updated_at->toDateTimeString();
         $ignored_data_sources = DataSource::whereNotIn('resource', ['auto_mixer', 'conflict_fixed'])->pluck('id');
 
-        $revisions = SchoolRevision::select('id','status')->where('school_id', $this->school->id)->whereIn('data_source_id', $ignored_data_sources)->where('updated_at', '>=', $last_revision_updated_at)->orderBy('id', 'DESC')->get();
+        $revisions = SchoolRevision::select('id','status')->where('school_id', $this->school->id)->whereIn('data_source_id', $ignored_data_sources)->where('updated_at', '>=', $last_revision_updated_at)->where('status','!=', NULL)->orderBy('id', 'DESC')->get();
 
 
         $statuses = array_column($revisions->toArray(), 'status');

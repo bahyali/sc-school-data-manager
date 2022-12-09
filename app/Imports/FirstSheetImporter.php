@@ -30,7 +30,15 @@ class FirstSheetImporter implements WithMultipleSheets
                 'Address' => new SchoolsExcelMapperImportMulti($this->data_source),
                 // 'Principal' => new SchoolsPrincipalExcelMapper($this->data_source),
             ];
-        }else{
+        }
+
+       elseif($this->data_source->name == 'schools_changed_names'){
+        return [
+                new SchoolsExcelMapperForChangedNames($this->data_source)
+            ];
+        }
+
+        else{
             return [
                 new SchoolsExcelMapperImport($this->data_source)
             ];
