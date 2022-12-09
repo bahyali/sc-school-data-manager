@@ -70,32 +70,9 @@ class SchoolRecord implements ISchoolRecord
             $this->remix();
 
 
-        if ($fill_dates){
+        if ($fill_dates && $revision['status'] != 'active' && $this->school->lastRevision()->first())
+            $this->fillDates();
 
-            if($revision['status'] != 'active'){
-
-                $revoked_data_row = SchoolRevision::where('school_id', $this->school->id)->where('revoked_date', '!=', NULL)->latest()->first();
-                $closed_date_row = SchoolRevision::where('school_id', $this->school->id)->where('closed_date', '!=', NULL)->latest()->first();
-                $last_revision = $this->school->lastRevision()->first();
-
-
-                if($revoked_data_row && $revision_model->revoked_date == NULL && $last_revision && $last_revision->revoked_date == NULL) {
-                    $revision_model->revoked_date = $revoked_data_row->revoked_date;
-                    $last_revision->revoked_date = $revoked_data_row->revoked_date;
-                }
-                if($closed_date_row && $revision_model->closed_date == NULL && $last_revision && $last_revision->closed_date == NULL) {
-                    $revision_model->closed_date = $closed_date_row->closed_date;
-                    $last_revision->closed_date = $closed_date_row->closed_date;
-                }
-
-                $revision_model->save();
-                $revision_model->touch();
-                $last_revision->save();
-                $last_revision->touch();
-
-            }
-
-        }
 
         return $this;
     }
@@ -220,13 +197,33 @@ class SchoolRecord implements ISchoolRecord
             return $incoming_status;
 
         } 
-
-
-
-
-
         
-        
+    }
+
+
+
+    public function fillDates(){
+
+        $revoked_data_row = SchoolRevision::where('school_id', $this->school->id)->where('revoked_date', '!=', NULL)->latest()->first();
+        $closed_date_row = SchoolRevision::where('school_id', $this->school->id)->where('closed_date', '!=', NULL)->latest()->first();
+        $last_revision = $this->school->lastRevision()->first();
+
+
+        if($revoked_data_row && $revision_model->revoked_date == NULL) {
+            $revision_model->revoked_date = $revoked_data_row->revoked_date;
+            $last_revision->revoked_date = $revoked_data_row->revoked_date;
+        }
+        if($closed_date_row && $revision_model->closed_date == NULL ) {
+            $revision_model->closed_date = $closed_date_row->closed_date;
+            $last_revision->closed_date = $closed_date_row->closed_date;
+        }
+
+        $revision_model->save();
+        $revision_model->touch();
+        $last_revision->save();
+        $last_revision->touch();
+
+
     }
 }
 
