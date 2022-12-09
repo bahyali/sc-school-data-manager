@@ -233,7 +233,7 @@ class ImporterController extends Controller
 		$record = App::make(SchoolRecord::class);
 		$data_source = DataSource::find(1);
         $array['data_source_id'] = $data_source->id;
-        $array['status'] = 'revoksadasded';
+        $array['status'] = 'closed';
         $array['name'] = 'lalalall';
         $array['number'] = '123456';
         $array['principal_name'] = 'lalalall';
@@ -248,7 +248,7 @@ class ImporterController extends Controller
         $array['fax'] = 'closed';
 
         $school = $record->addSchool($array['number']);
-        $school->addRevision($array, $data_source);
+        $school->addRevision($array, $data_source, false, true);
         return'done';
 	}
 }

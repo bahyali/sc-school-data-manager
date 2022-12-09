@@ -58,11 +58,16 @@ class SchoolRecord implements ISchoolRecord
         if ($associate) {
 
             if(!$remix && $revision['status'] != 'active'){
-                $revoked_data_row = SchoolRevision::where('revoked_date', '!=', NULL)->latest()->first();
-                $closed_date_row = SchoolRevision::where('closed_date', '!=', NULL)->latest()->first();
 
-                if($revoked_data_row) $revision_model['revoked_date'] = $revoked_data_row->revoked_date;
-                if($closed_date_row) $revision_model['closed_date'] = $closed_date_row->closed_date;
+                $revoked_data_row = SchoolRevision::where('school_id', $this->school->id)->where('revoked_date', '!=', NULL)->latest()->first();
+                $closed_date_row = SchoolRevision::where('school_id', $this->school->id)->where('closed_date', '!=', NULL)->latest()->first();
+
+
+                if($revoked_data_row && $revision_model->revoked_date == NULL) $revision_model->revoked_date = $revoked_data_row->revoked_date;
+                if($closed_date_row && $revision_model->closed_date == NULL) $revision_model->closed_date = $closed_date_row->closed_date;
+
+                $revision_model->save();
+
 
             }
             $this->school->lastRevision()->associate($revision_model);
