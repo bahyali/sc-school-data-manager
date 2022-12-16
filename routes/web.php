@@ -54,12 +54,12 @@ Route::get('/principals', [App\Http\Controllers\ImporterController::class, 'prin
 
 
 
-Route::get('/test-record', [App\Http\Controllers\ImporterController::class, 'testRecord']);
+// Route::get('/test-record', [App\Http\Controllers\ImporterController::class, 'testRecord']);
 // Route::get('/school-type', [App\Http\Controllers\ImporterController::class, 'schoolType']);
 
 
 
-Route::get('/merge-status', [App\Http\Controllers\ImporterController::class, 'mergeStatus']);
+// Route::get('/merge-status', [App\Http\Controllers\ImporterController::class, 'mergeStatus']);
 
 
 
