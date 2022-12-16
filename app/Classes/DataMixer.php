@@ -43,10 +43,10 @@ class DataMixer
 
         if ($remix){
 
-            if($remix['status'] == 'active'){
-                $remix['revoked_date'] = NULL; 
-                $remix['closed_date'] = NULL; 
-            }
+            // if($remix['status'] == 'active'){
+            //     $remix['revoked_date'] = NULL; 
+            //     $remix['closed_date'] = NULL; 
+            // }
 
 
             //to modify OSSD if school type is private inspected

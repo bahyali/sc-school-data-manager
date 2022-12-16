@@ -58,3 +58,8 @@ Route::get('/test-record', [App\Http\Controllers\ImporterController::class, 'tes
 // Route::get('/school-type', [App\Http\Controllers\ImporterController::class, 'schoolType']);
 
 
+
+Route::get('/merge-status', [App\Http\Controllers\ImporterController::class, 'mergeStatus']);
+
+
+

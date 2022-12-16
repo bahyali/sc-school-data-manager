@@ -135,13 +135,19 @@ class SchoolController extends Controller
 					$value = DataChangeValue::findOrFail($value_id);
 
 					$last_revision->{$conflict->column} = $value->affectedRecord->{$conflict->column};
-					$last_revision->touch();
+					// $last_revision->touch();
 
 					$record = App::make(SchoolRecord::class);
 					$record->fetchSchool($school->id);
 
 					if($conflict->column == 'status') {
-						$record->addRevision($last_revision->toArray(), $ds, false, false, false, false, true);
+
+						if($value->affectedRecord->{$conflict->column} == 'active'){
+							$last_revision->closed_date = NULL;
+							$last_revision->revoked_date = NULL;
+						}
+						
+						$record->addRevision($last_revision->toArray(), $ds, false, false, false, false, false);
 						$school->status = $value->affectedRecord->{$conflict->column};
             			$school->save();
 
@@ -151,7 +157,9 @@ class SchoolController extends Controller
 					}
 
 
+					$last_revision->touch();
         			$school->touch();
+
 
 					$value->selected = 1;
 					$value->save();
@@ -390,17 +398,18 @@ class SchoolController extends Controller
 
 
 
-	public function getUnresolvedSchoolConflictByColumn($school_id, $column)
+	public function getUnresolvedSchoolConflictByColumn($school_id, $column, $ignored_value = null)
 	{
 		$different_values = [];
 		$change = DataChange::with(['values'])->where('school_id', $school_id)->where('column', $column)->where('status', 'not_resolved')->first();
 		if(isset($change->values)){
 			foreach($change->values as $value){
+				if($ignored_value && $ignored_value == $value->value) continue;
 				$different_values[] = $value->value;
 			}
 		}
 
-		return response()->json(['different_values' => $different_values], 200);
+		return response()->json(['different_values' => array_unique($different_values)], 200);
 	}
 
 

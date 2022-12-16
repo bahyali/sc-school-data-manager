@@ -68,7 +68,7 @@ Route::post('/change-data', [App\Http\Controllers\API\SchoolController::class, '
 Route::get('/changed-data/{school_id}/{column?}', [App\Http\Controllers\API\SchoolController::class, 'getChangedData']);
 
 
-Route::get('/unresolved-conflict/{school_id}/{column}', [App\Http\Controllers\API\SchoolController::class, 'getUnresolvedSchoolConflictByColumn']);
+Route::get('/unresolved-conflict/{school_id}/{column}/{ignored_value?}', [App\Http\Controllers\API\SchoolController::class, 'getUnresolvedSchoolConflictByColumn']);
 
 
 Route::get('/crawl-by-name/{ds_name}', [App\Http\Controllers\ImporterController::class, 'crawlSchoolsByName']);

@@ -17,6 +17,8 @@ use DB;
 use Exception;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SchoolsExcelMapperImportMulti;
+use App\Models\DataChange;
+
 
 
 class ImporterController extends Controller
@@ -226,7 +228,6 @@ class ImporterController extends Controller
 
 
 
-
 	public function testRecord(){
 
 		// [44,45,46,47];
@@ -250,5 +251,31 @@ class ImporterController extends Controller
         $school = $record->addSchool($array['number']);
         $school->addRevision($array, $data_source, false, false, false, false, true);
         return'done';
+	}
+
+
+
+	public function mergeStatus(){
+
+		$changes = DataChange::where('column','status')->get();
+
+		foreach ($changes as $change) {
+		 	$revoked_data_row = SchoolRevision::where('school_id', $change->school_id)->where('revoked_date', '!=', NULL)->latest()->first();
+        	$closed_date_row = SchoolRevision::where('school_id', $change->school_id)->where('closed_date', '!=', NULL)->latest()->first();
+
+        	if($revoked_data_row) {
+			$change->school->lastRevision->revoked_date = $revoked_data_row->revoked_date;
+        	}
+
+        	if($closed_date_row) {
+			$change->school->lastRevision->closed_date = $closed_date_row->closed_date;
+        	}
+
+	 		$change->school->lastRevision->save();
+        	$change->school->lastRevision->touch();
+        	$change->school->touch();
+
+		}
+			return 'done';
 	}
 }
