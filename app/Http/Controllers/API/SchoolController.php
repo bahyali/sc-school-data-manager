@@ -440,7 +440,7 @@ class SchoolController extends Controller
 			'ossd_and_missing_principal_name_count' => $schools_with_ossd_and_missing_principal_name,
 			'ossd_and_missing_website_count' => $schools_with_ossd_and_missing_website,
 			'missing_program_type_count' => $schools_with_missing_program_type,
-			'ministry_datafile' => $ministry_datafile->configuration['webpage'],
+			'ministry_datafile_url' => $ministry_datafile->configuration['webpage'],
 		], 200);
 
 	}
