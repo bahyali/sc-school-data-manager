@@ -436,7 +436,7 @@ class SchoolController extends Controller
 			if(is_null($rev->program_type)) $schools_with_missing_program_type[] = $rev->name;
 		}
 
-		return count($schools_with_missing_program_type);
+		return count($schools_with_ossd_and_missing_website);
 	}
 
 
