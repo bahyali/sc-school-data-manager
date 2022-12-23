@@ -415,4 +415,31 @@ class SchoolController extends Controller
 
 
 
+
+	public function missingData()
+	{
+		$ministry_datafile = DataSource::where('name', 'active_schools')->first();
+	 	$schools_with_level_and_missing_ossd = [];
+        $schools_with_ossd_and_missing_principal_name = [];
+        $schools_with_ossd_and_missing_website = [];
+        $schools_with_missing_program_type = [];
+
+
+        $last_sync_date = date('Y-m-d',strtotime($ministry_datafile->last_sync));
+
+		$ministry_revisions = SchoolRevision::where('data_source_id', $ministry_datafile->id)->where('updated_at','>=',$last_sync_date)->latest()->get()->unique('school_id');
+
+		foreach ($ministry_revisions as $rev) {
+			if($rev->level && is_null($rev->ossd_credits_offered)) $schools_with_level_and_missing_ossd[] = $rev->name;
+			if($rev->ossd_credits_offered && is_null($rev->principal_name)) $schools_with_ossd_and_missing_principal_name[] = $rev->name;
+			if($rev->ossd_credits_offered && is_null($rev->website)) $schools_with_ossd_and_missing_website[] = $rev->name;
+			if(is_null($rev->program_type)) $schools_with_missing_program_type[] = $rev->name;
+		}
+
+		return count($schools_with_missing_program_type);
+	}
+
+
+
+
 }
