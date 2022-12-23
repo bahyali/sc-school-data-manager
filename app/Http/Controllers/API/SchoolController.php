@@ -424,7 +424,6 @@ class SchoolController extends Controller
         $schools_with_ossd_and_missing_website = 0;
         $schools_with_missing_program_type = 0;
 
-
         $last_sync_date = date('Y-m-d',strtotime($ministry_datafile->last_sync));
 
 		$ministry_revisions = SchoolRevision::where('data_source_id', $ministry_datafile->id)->where('updated_at','>=',$last_sync_date)->latest()->get()->unique('school_id');
@@ -441,6 +440,7 @@ class SchoolController extends Controller
 			'schools_with_ossd_and_missing_principal_name' => $schools_with_ossd_and_missing_principal_name,
 			'schools_with_ossd_and_missing_website' => $schools_with_ossd_and_missing_website,
 			'schools_with_missing_program_type' => $schools_with_missing_program_type,
+			'ministry_datafile' => $ministry_datafile->configuration['webpage'],
 		], 200);
 
 	}
