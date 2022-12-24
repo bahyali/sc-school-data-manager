@@ -447,5 +447,23 @@ class SchoolController extends Controller
 
 
 
+	public function missingDataResults($missing_column, $filling_column = null)
+	{
+		
+		$ministry_datafile = DataSource::where('name', 'active_schools')->first();
+        $last_sync_date = date('Y-m-d',strtotime($ministry_datafile->last_sync));
+
+        $ministry_revisions = SchoolRevision::where('data_source_id', $ministry_datafile->id)->where('updated_at','>=',$last_sync_date)->whereNull($missing_column)->whereNotNull($filling_column);
+
+        if($filling_column == 'level') $ministry_revisions = $ministry_revisions->where('level','!=','Elementary');
+
+        $ministry_revisions = $ministry_revisions->latest()->get()->unique('school_id');
+
+
+		return count($ministry_revisions);
+	}
+
+
+
 
 }

@@ -76,6 +76,7 @@ Route::get('/crawl-by-name/{ds_name}', [App\Http\Controllers\ImporterController:
 
 
 Route::get('/missing-data', [App\Http\Controllers\API\SchoolController::class, 'missingData']);
+Route::get('/missing-data-results/{missing_column}/{filling_column?}', [App\Http\Controllers\API\SchoolController::class, 'missingDataResults']);
 
 
 

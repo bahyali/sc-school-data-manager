@@ -53,15 +53,18 @@ class ImporterController extends Controller
     	 	// Excel::import(new SchoolsExcelMapperImportMulti($data_source), $file);
 
 			 $response = 'File was uploaded & processed successfully!';
+			 $data_source->update([
+				'last_sync' => Carbon::now(),
+				'checksum' => $file_checksum
+			]);
+
 		} else {
 			$response = 'This file was uploaded before!';
+			$data_source->touch();
 		}
 
 		// If imported successfully update metadata
-		$data_source->update([
-			'last_sync' => Carbon::now(),
-			'checksum' => $file_checksum
-		]);
+		
 
 		return $response;
 	}
