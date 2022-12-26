@@ -459,8 +459,7 @@ class SchoolController extends Controller
 
         $ministry_revisions = $ministry_revisions->latest()->get()->unique('school_id');
 
-
-		return count($ministry_revisions);
+        return response()->json(['schools' => $ministry_revisions], 200);
 	}
 
 
