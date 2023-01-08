@@ -453,9 +453,11 @@ class SchoolController extends Controller
 		$ministry_datafile = DataSource::where('name', 'active_schools')->first();
         $last_sync_date = date('Y-m-d',strtotime($ministry_datafile->last_sync));
 
-        $ministry_revisions = SchoolRevision::where('data_source_id', $ministry_datafile->id)->where('updated_at','>=',$last_sync_date)->whereNull($missing_column)->whereNotNull($filling_column);
+        $ministry_revisions = SchoolRevision::where('data_source_id', $ministry_datafile->id)->where('updated_at','>=',$last_sync_date)->whereNull($missing_column);
 
-        if($filling_column == 'level') $ministry_revisions = $ministry_revisions->where('level','!=','Elementary');
+        if($filling_column == 'sec_level') $ministry_revisions = $ministry_revisions->whereNotNull('level')->where('level','!=','Elementary');
+        else $ministry_revisions = $ministry_revisions->whereNotNull($filling_column);
+
 
         $ministry_revisions = $ministry_revisions->latest()->get()->unique('school_id');
 
