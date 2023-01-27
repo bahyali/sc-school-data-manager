@@ -429,9 +429,9 @@ class SchoolController extends Controller
 							    ->groupBy('status')
 							    ->get();
 
-			    $all_schools->map(function($column) {
-				    $column->ids = explode(',', $column->ids);
-				});
+			 //    $all_schools->map(function($column) {
+				//     $column->ids = explode(',', $column->ids);
+				// });
 
 			return $all_schools;
 			
