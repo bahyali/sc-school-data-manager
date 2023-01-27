@@ -441,6 +441,7 @@ class SchoolController extends Controller
 			$data_sources = DataSource::whereIn('name',['active_schools','revoked_schools','closed_schools'])->groupBy('name')->select('id','name','last_sync','configuration')->get();
 
 			$closed_ministry_ds = $data_sources[array_search('closed_schools', array_column($data_sources->toArray(),'name'))];
+
 			$revoked_ministry_ds = $data_sources[array_search('revoked_schools', array_column($data_sources->toArray(),'name'))];
 
 			$closed_ministry_revisions = SchoolRevision::where('data_source_id', $closed_ministry_ds->id)
@@ -448,6 +449,7 @@ class SchoolController extends Controller
 													->whereIn('school_id',$all_closed_ids)
 													->latest()->get()->unique('school_id');
 
+			return count($closed_ministry_revisions).'---'.count($all_closed_ids);
 
 			$revoked_ministry_revisions = SchoolRevision::where('data_source_id', $revoked_ministry_ds->id)
 													->where('updated_at','>=',date('Y-m-d',strtotime($revoked_ministry_ds->last_sync)))
