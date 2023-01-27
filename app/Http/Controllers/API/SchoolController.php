@@ -421,14 +421,14 @@ class SchoolController extends Controller
 
 
 		if($user_admin){
-			$all_schools = School::groupBy('status')->select('status', DB::raw('count(*) as total'))->get();
+			// $all_schools = School::groupBy('status')->select('status', DB::raw('count(*) as total'))->get();
 
 
-			return $all_schools;
 
-			$all_schools = School::select('status', DB::raw('GROUP_CONCAT(id) as ids'))
+			$all_schools = School::select('status', DB::raw('GROUP_CONCAT(id) as ids'), DB::raw('count(*) as total'))
 							    ->groupBy('status')
 							    ->get();
+			return $all_schools;
 
 			    $all_schools->map(function($column) {
 				    $column->ids = explode(',', $column->ids);
