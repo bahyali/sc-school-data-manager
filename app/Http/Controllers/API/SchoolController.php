@@ -423,18 +423,14 @@ class SchoolController extends Controller
 		if($user_admin){
 			// $all_schools = School::groupBy('status')->select('status', DB::raw('count(*) as total'))->get();
 
-
-
-			$all_schools = School::select('status', DB::raw('GROUP_CONCAT(id) as ids'), DB::raw('count(*) as total'))
+			$all_schools = School::select('status', DB::raw('GROUP_CONCAT(id) as ids'))
 							    ->groupBy('status')
 							    ->get();
 
-			 //    $all_schools->map(function($column) {
-				//     $column->ids = explode(',', $column->ids);
-				// });
+			    $all_schools->map(function($column) {
+				    $column->ids = explode(',', $column->ids);
+				});
 
-			return $all_schools;
-			
 			$all_active_ids = $all_schools[array_search('active', array_column($all_schools->toArray(), 'status'))]->ids;
 			$all_closed_ids = $all_schools[array_search('closed', array_column($all_schools->toArray(), 'status'))]->ids;
 			$all_revoked_ids = $all_schools[array_search('revoked', array_column($all_schools->toArray(), 'status'))]->ids;
