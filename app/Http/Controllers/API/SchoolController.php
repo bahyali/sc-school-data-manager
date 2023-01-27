@@ -483,7 +483,7 @@ class SchoolController extends Controller
 
 
 		// return $all_closed_count;
-		return count($all_closed_ids).'--'.count($closed_ministry_revisions);
+		// return count($closed_ministry_revisions);
 
 		return response()->json([
 			'sec_level_and_missing_ossd_count' => $schools_with_sec_level_and_missing_ossd,
@@ -532,9 +532,9 @@ class SchoolController extends Controller
 		$data_source_schools_ids = $data_source_revisions->pluck('school_id');
 
 
-		return count($data_source_revisions).'--'.count(School::with('lastRevision:id,name')->where('status', $school_status)->whereNotIn('id',$data_source_schools_ids)->get());
+		// return count($data_source_revisions);
 
-		return $missing_schools = count(School::with('lastRevision:id,name')->where('status', $school_status)->whereNotIn('id',$data_source_schools_ids)->get());
+		return $missing_schools = School::with('lastRevision:id,name')->where('status', $school_status)->whereNotIn('id',$data_source_schools_ids)->get();
 	}
 
 
