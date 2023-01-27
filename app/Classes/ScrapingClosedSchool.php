@@ -24,13 +24,14 @@ class ScrapingClosedSchool extends ScrapingGetter
 
 		$html_checksum = md5(json_encode($arr));
 		if ($this->data_source->checksum == $html_checksum) {
+			$this->data_source->touch();
 		} else {
 
 			$whole_page_data = $crawler->filter('.body-field h3:contains("school year")');
 			$this->scrapeAndStore($whole_page_data);
+			$this->dataSourceUpdate($html_checksum);
 		}
 
-		$this->dataSourceUpdate($html_checksum);
 	}
 
 

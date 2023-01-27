@@ -95,9 +95,9 @@ class ImporterController extends Controller
 
 		$ds_class->start();
 
-		$data_source->update([
-			'last_sync' => Carbon::now()
-		]);
+		// $data_source->update([
+		// 	'last_sync' => Carbon::now()
+		// ]);
 
 		return 'Crawled Successfully!';
 	}
@@ -125,9 +125,9 @@ class ImporterController extends Controller
 			$ds_class->start();
 
 
-			$factory[$ds_name]['data_source']->update([
-				'last_sync' => Carbon::now()
-			]);
+			// $factory[$ds_name]['data_source']->update([
+			// 	'last_sync' => Carbon::now()
+			// ]);
 
 			return 'Crawled Successfully!';
 		} 
