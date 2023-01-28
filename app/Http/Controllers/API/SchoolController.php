@@ -435,7 +435,7 @@ class SchoolController extends Controller
 			$all_active_ids = $all_schools[array_search('active', array_column($all_schools->toArray(), 'status'))]->ids;
 			$all_closed_ids = $all_schools[array_search('closed', array_column($all_schools->toArray(), 'status'))]->ids;
 			$all_revoked_ids = $all_schools[array_search('revoked', array_column($all_schools->toArray(), 'status'))]->ids;
-		    // return $all_closed;
+		    return $all_closed;
 			// $all_closed_count = $all_schools[array_search('closed', array_column($all_schools->toArray(), 'status'))]->total;
 			// $all_revoked_count = $all_schools[array_search('revoked', array_column($all_schools->toArray(), 'status'))]->total;
 
