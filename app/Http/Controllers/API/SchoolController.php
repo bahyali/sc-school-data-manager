@@ -435,7 +435,7 @@ class SchoolController extends Controller
 			$all_active_ids = $all_schools[array_search('active', array_column($all_schools->toArray(), 'status'))]->ids;
 			$all_closed_ids = $all_schools[array_search('closed', array_column($all_schools->toArray(), 'status'))]->ids;
 			$all_revoked_ids = $all_schools[array_search('revoked', array_column($all_schools->toArray(), 'status'))]->ids;
-		    return count($all_closed_ids);
+		    // return count($all_closed_ids);
 			// $all_closed_count = $all_schools[array_search('closed', array_column($all_schools->toArray(), 'status'))]->total;
 			// $all_revoked_count = $all_schools[array_search('revoked', array_column($all_schools->toArray(), 'status'))]->total;
 
@@ -449,6 +449,7 @@ class SchoolController extends Controller
 													->whereIn('school_id',$all_closed_ids)
 													->latest()->get()->unique('school_id');
 
+		    return count($closed_ministry_revisions);
 
 			$revoked_ministry_revisions = SchoolRevision::where('data_source_id', $revoked_ministry_ds->id)
 													->where('updated_at','>=',date('Y-m-d',strtotime($revoked_ministry_ds->last_sync)))
