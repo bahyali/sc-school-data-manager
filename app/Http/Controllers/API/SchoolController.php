@@ -421,15 +421,16 @@ class SchoolController extends Controller
 
 
 		if($user_admin){
-			$all_schools = School::groupBy('status')->select('status', DB::raw('count(*) as total'))->get();
+			// $all_schools = School::groupBy('status')->select('status', DB::raw('count(*) as total'))->get();
 
-			// $all_schools = School::select('status', DB::raw('GROUP_CONCAT(id) as ids'))
-			// 				    ->groupBy('status')
-			// 				    ->get();
+			DB::statement('SET GLOBAL group_concat_max_len = 1000000');
+			$all_schools = School::select('status', DB::raw('GROUP_CONCAT(id) as ids'))
+							    ->groupBy('status')
+							    ->get();
 
-			//     $all_schools->map(function($column) {
-			// 	    $column->ids = explode(',', $column->ids);
-			// 	});
+			    $all_schools->map(function($column) {
+				    $column->ids = explode(',', $column->ids);
+				});
 
 
 			    return $all_schools;
