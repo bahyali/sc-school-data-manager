@@ -449,7 +449,7 @@ class SchoolController extends Controller
 													->whereIn('school_id',$all_closed_ids)
 													->latest()->get()->unique('school_id');
 
-		    return count($closed_ministry_revisions);
+		    // return count($closed_ministry_revisions);
 
 			$revoked_ministry_revisions = SchoolRevision::where('data_source_id', $revoked_ministry_ds->id)
 													->where('updated_at','>=',date('Y-m-d',strtotime($revoked_ministry_ds->last_sync)))
