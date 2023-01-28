@@ -536,8 +536,7 @@ class SchoolController extends Controller
 
 		// return count($data_source_revisions);
 
-		// return $missing_schools = School::with('lastRevision:id,name')->where('status', $school_status)->whereNotIn('id',$data_source_schools_ids)->get();
-		return $missing_schools = School::where('status', $school_status)->whereNotIn('id',$data_source_schools_ids)->pluck('number');
+		return $missing_schools = School::with('lastRevision:id,name')->where('status', $school_status)->whereNotIn('id',$data_source_schools_ids)->get();
 	}
 
 
