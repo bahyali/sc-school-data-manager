@@ -435,9 +435,7 @@ class SchoolController extends Controller
 			$all_active_ids = $all_schools[array_search('active', array_column($all_schools->toArray(), 'status'))]->ids;
 			$all_closed_ids = $all_schools[array_search('closed', array_column($all_schools->toArray(), 'status'))]->ids;
 			$all_revoked_ids = $all_schools[array_search('revoked', array_column($all_schools->toArray(), 'status'))]->ids;
-		    // return count($all_closed_ids);
 			// $all_closed_count = $all_schools[array_search('closed', array_column($all_schools->toArray(), 'status'))]->total;
-			// $all_revoked_count = $all_schools[array_search('revoked', array_column($all_schools->toArray(), 'status'))]->total;
 
 			$data_sources = DataSource::whereIn('name',['active_schools','revoked_schools','closed_schools'])->groupBy('name')->select('id','name','last_sync','configuration')->get();
 
@@ -535,8 +533,10 @@ class SchoolController extends Controller
 
 
 		// return count($data_source_revisions);
+		
+		$missing_schools = School::with('lastRevision:id,name')->where('status', $school_status)->whereNotIn('id',$data_source_schools_ids)->get();
+        return response()->json(['schools' => $missing_schools], 200);
 
-		return $missing_schools = School::with('lastRevision:id,name')->where('status', $school_status)->whereNotIn('id',$data_source_schools_ids)->get();
 	}
 
 
