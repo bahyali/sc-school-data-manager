@@ -416,62 +416,21 @@ class SchoolController extends Controller
 
 
 
-	public function missingData($user_admin = false)
+	public function missingData()
 	{
 
-
-		if($user_admin){
-			// $all_schools = School::groupBy('status')->select('status', DB::raw('count(*) as total'))->get();
-
-			DB::statement('SET GLOBAL group_concat_max_len = 1000000');
-			$all_schools = School::select('status', DB::raw('GROUP_CONCAT(id) as ids'))
-							    ->groupBy('status')
-							    ->get();
-
-			    $all_schools->map(function($column) {
-				    $column->ids = explode(',', $column->ids);
-				});
-
-			$all_active_ids = $all_schools[array_search('active', array_column($all_schools->toArray(), 'status'))]->ids;
-			$all_closed_ids = $all_schools[array_search('closed', array_column($all_schools->toArray(), 'status'))]->ids;
-			$all_revoked_ids = $all_schools[array_search('revoked', array_column($all_schools->toArray(), 'status'))]->ids;
-			// $all_closed_count = $all_schools[array_search('closed', array_column($all_schools->toArray(), 'status'))]->total;
-
-			$data_sources = DataSource::whereIn('name',['active_schools','revoked_schools','closed_schools'])->groupBy('name')->select('id','name','last_sync','configuration')->get();
-
-			$closed_ministry_ds = $data_sources[array_search('closed_schools', array_column($data_sources->toArray(),'name'))];
-			$revoked_ministry_ds = $data_sources[array_search('revoked_schools', array_column($data_sources->toArray(),'name'))];
-
-			$closed_ministry_revisions = SchoolRevision::where('data_source_id', $closed_ministry_ds->id)
-													->where('updated_at','>=',date('Y-m-d',strtotime($closed_ministry_ds->last_sync)))
-													->whereIn('school_id',$all_closed_ids)
-													->latest()->get()->unique('school_id');
-
-		    // return count($closed_ministry_revisions);
-
-			$revoked_ministry_revisions = SchoolRevision::where('data_source_id', $revoked_ministry_ds->id)
-													->where('updated_at','>=',date('Y-m-d',strtotime($revoked_ministry_ds->last_sync)))
-													->whereIn('school_id',$all_revoked_ids)
-													->latest()->get()->unique('school_id');
-		}
-		
-
-
 		$active_ministry_ds = DataSource::where('name', 'active_schools')->first();
-
 
 	 	$schools_with_sec_level_and_missing_ossd = 0;
         $schools_with_ossd_and_missing_principal_name = 0;
         $schools_with_ossd_and_missing_website = 0;
         $schools_with_missing_program_type = 0;
-        
 
 		$active_ministry_revisions = SchoolRevision::where('data_source_id', $active_ministry_ds->id)
 													->where('updated_at','>=',date('Y-m-d',strtotime($active_ministry_ds->last_sync)))
 													->latest()->get()->unique('school_id');
 
 
-		
 		foreach ($active_ministry_revisions as $rev) {
 			if($rev->level && $rev->level != 'Elementary' && is_null($rev->ossd_credits_offered)) $schools_with_sec_level_and_missing_ossd++;
 			if($rev->ossd_credits_offered && is_null($rev->principal_name)) $schools_with_ossd_and_missing_principal_name++;
@@ -481,22 +440,21 @@ class SchoolController extends Controller
 		}
 
 
-
-		// return $all_closed_count;
-		// return count($closed_ministry_revisions);
-
 		return response()->json([
 			'sec_level_and_missing_ossd_count' => $schools_with_sec_level_and_missing_ossd,
 			'ossd_and_missing_principal_name_count' => $schools_with_ossd_and_missing_principal_name,
 			'ossd_and_missing_website_count' => $schools_with_ossd_and_missing_website,
 			'missing_program_type_count' => $schools_with_missing_program_type,
 			'ministry_datafile_url' => $active_ministry_ds->configuration['webpage'],
-			'active_in_sc_but_not_in_ministry_count' => ($user_admin) ? count($all_active_ids) - count($active_ministry_revisions) : 0,
-			'closed_in_sc_but_not_in_ministry_count' => ($user_admin) ? count($all_closed_ids) - count($closed_ministry_revisions) : 0,
-			'revoked_in_sc_but_not_in_ministry_count' => ($user_admin) ? count($all_revoked_ids) - count($revoked_ministry_revisions) : 0,
 		], 200);
 
 	}
+
+
+
+
+
+
 
 
 
@@ -529,13 +487,101 @@ class SchoolController extends Controller
 													->where('updated_at','>=',date('Y-m-d',strtotime($data_source->last_sync)))
 													->latest()->get()->unique('school_id');
 
+
 		$data_source_schools_ids = $data_source_revisions->pluck('school_id');
 
 
-		// return count($data_source_revisions);
-		
-		$missing_schools = School::with('lastRevision:id,name')->where('status', $school_status)->whereNotIn('id',$data_source_schools_ids)->get();
+
+		if($school_status == 'closed') $missing_schools = School::where('status', $school_status)->whereNotIn('id',$data_source_schools_ids)
+										->whereHas('lastRevision', function ($q) {
+		    								$q->whereDate('closed_date', '>=', Carbon::parse('01-01-2018'));
+										})->get();
+
+
+		elseif($school_status == 'revoked') $missing_schools = School::where('status', $school_status)->whereNotIn('id',$data_source_schools_ids)
+										->whereHas('lastRevision', function ($q) {
+		    								$q->whereDate('revoked_date', '>=', Carbon::parse('01-01-2015'));
+										})->get();
+
+
+		else $missing_schools = School::where('status', $school_status)->whereNotIn('id',$data_source_schools_ids)->get();
+
+
         return response()->json(['schools' => $missing_schools], 200);
+
+	}
+
+
+
+
+
+	public function tempp($user_admin = false)
+	{
+
+
+		DB::statement('SET GLOBAL group_concat_max_len = 1000000');
+		$all_schools = School::select('status', DB::raw('GROUP_CONCAT(id) as ids'))
+						    ->groupBy('status')
+						    ->get();
+
+		    $all_schools->map(function($column) {
+			    $column->ids = explode(',', $column->ids);
+			});
+
+		$all_active_ids = $all_schools[array_search('active', array_column($all_schools->toArray(), 'status'))]->ids;
+		$all_closed_ids = $all_schools[array_search('closed', array_column($all_schools->toArray(), 'status'))]->ids;
+		$all_revoked_ids = $all_schools[array_search('revoked', array_column($all_schools->toArray(), 'status'))]->ids;
+
+		$data_sources = DataSource::whereIn('name',['active_schools','revoked_schools','closed_schools'])->groupBy('name')->select('id','name','last_sync','configuration')->get();
+
+		$closed_ministry_ds = $data_sources[array_search('closed_schools', array_column($data_sources->toArray(),'name'))];
+		$revoked_ministry_ds = $data_sources[array_search('revoked_schools', array_column($data_sources->toArray(),'name'))];
+		$active_ministry_ds = $data_sources[array_search('active_schools', array_column($data_sources->toArray(),'name'))];
+
+	
+	 	$schools_with_sec_level_and_missing_ossd = 0;
+        $schools_with_ossd_and_missing_principal_name = 0;
+        $schools_with_ossd_and_missing_website = 0;
+        $schools_with_missing_program_type = 0;
+        $closed = [];
+        $revoked = [];
+        $active = [];
+        
+
+		$revisions = SchoolRevision::orderBy('school_id')->whereIn('data_source_id',[1,3,4])->latest()->get();
+		
+		foreach ($revisions as $rev) {
+			if($rev->data_source_id == $active_ministry_ds->id && $rev->updated_at >= date('Y-m-d',strtotime($active_ministry_ds->last_sync))){
+				if($rev->level && $rev->level != 'Elementary' && is_null($rev->ossd_credits_offered)) $schools_with_sec_level_and_missing_ossd++;
+				if($rev->ossd_credits_offered && is_null($rev->principal_name)) $schools_with_ossd_and_missing_principal_name++;
+				if($rev->ossd_credits_offered && is_null($rev->website)) $schools_with_ossd_and_missing_website++;
+				if(is_null($rev->program_type)) $schools_with_missing_program_type++;
+				$active[] = $rev->school_id;
+
+			}
+			if($rev->data_source_id == $closed_ministry_ds->id && $rev->updated_at >= date('Y-m-d',strtotime($closed_ministry_ds->last_sync)) && in_array($rev->school_id, $all_closed_ids)){
+				$closed[] = $rev->school_id;
+			}
+
+
+			if($rev->data_source_id == $revoked_ministry_ds->id && $rev->updated_at >= date('Y-m-d',strtotime($revoked_ministry_ds->last_sync)) && in_array($rev->school_id, $all_revoked_ids)){
+				$revoked[] = $rev->school_id;
+			}
+
+		}
+
+
+
+		return response()->json([
+			'sec_level_and_missing_ossd_count' => $schools_with_sec_level_and_missing_ossd,
+			'ossd_and_missing_principal_name_count' => $schools_with_ossd_and_missing_principal_name,
+			'ossd_and_missing_website_count' => $schools_with_ossd_and_missing_website,
+			'missing_program_type_count' => $schools_with_missing_program_type,
+			'ministry_datafile_url' => $active_ministry_ds->configuration['webpage'],
+			'active_in_sc_but_not_in_ministry_count' => ($user_admin) ? count($all_active_ids) - count(array_unique($active)) : 0,
+			'closed_in_sc_but_not_in_ministry_count' => ($user_admin) ? count($all_closed_ids) - count(array_unique($closed)) : 0,
+			'revoked_in_sc_but_not_in_ministry_count' => ($user_admin) ? count($all_revoked_ids) - count(array_unique($revoked)) : 0,
+		], 200);
 
 	}
 

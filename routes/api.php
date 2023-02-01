@@ -75,11 +75,12 @@ Route::get('/crawl-by-name/{ds_name}', [App\Http\Controllers\ImporterController:
 
 
 
-Route::get('/missing-data/{user_admin?}', [App\Http\Controllers\API\SchoolController::class, 'missingData']);
+Route::get('/missing-data', [App\Http\Controllers\API\SchoolController::class, 'missingData']);
 Route::get('/missing-data-results/{missing_column}/{filling_column?}', [App\Http\Controllers\API\SchoolController::class, 'missingDataResults']);
 Route::get('/missing-data-source-schools/{school_status}/{data_source}', [App\Http\Controllers\API\SchoolController::class, 'missingDataSourceSchools']);
 
 
+// Route::get('/missing-data/{user_admin?}', [App\Http\Controllers\API\SchoolController::class, 'testttt']);missingData
 
 
 
