@@ -419,6 +419,9 @@ class SchoolController extends Controller
 	public function missingData()
 	{
 
+
+		$multi_statuses_schools_count = count(DataChange::where('column', 'status')->where('status', 'not_resolved')->latest()->get()->unique('school_id'));
+
 		$active_ministry_ds = DataSource::where('name', 'active_schools')->first();
 
 	 	$schools_with_sec_level_and_missing_ossd = 0;
@@ -446,6 +449,7 @@ class SchoolController extends Controller
 			'ossd_and_missing_website_count' => $schools_with_ossd_and_missing_website,
 			'missing_program_type_count' => $schools_with_missing_program_type,
 			'ministry_datafile_url' => $active_ministry_ds->configuration['webpage'],
+			'multi_statuses_schools_count' => $multi_statuses_schools_count,
 		], 200);
 
 	}
@@ -513,6 +517,12 @@ class SchoolController extends Controller
 
 
 
+
+	public function multiStatusesSchools()
+	{
+		$multi_statuses_school = DataChange::with('school')->where('column', 'status')->where('status', 'not_resolved')->latest()->get()->unique('school_id')->pluck('school');
+        return response()->json(['schools' => $multi_statuses_school], 200);
+	}
 
 
 	public function tempp($user_admin = false)
