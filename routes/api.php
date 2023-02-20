@@ -81,7 +81,7 @@ Route::get('/missing-data-source-schools/{school_status}/{data_source}', [App\Ht
 Route::get('/schools-with-multi-statuses', [App\Http\Controllers\API\SchoolController::class, 'multiStatusesSchools']);
 
 
-// Route::get('/missing-data/{user_admin?}', [App\Http\Controllers\API\SchoolController::class, 'testttt']);missingData
+Route::get('/school-sources/{school_id}', [App\Http\Controllers\API\SchoolController::class, 'getSchoolSources']);
 
 
 

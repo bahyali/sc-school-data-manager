@@ -15,6 +15,8 @@ use App\Models\DataChange;
 use App\Models\DataChangeValue;
 use DB;
 use Exception;
+use Illuminate\Support\Arr;
+
 
 class SchoolController extends Controller
 {
@@ -592,6 +594,35 @@ class SchoolController extends Controller
 			'closed_in_sc_but_not_in_ministry_count' => ($user_admin) ? count($all_closed_ids) - count(array_unique($closed)) : 0,
 			'revoked_in_sc_but_not_in_ministry_count' => ($user_admin) ? count($all_revoked_ids) - count(array_unique($revoked)) : 0,
 		], 200);
+
+	}
+
+
+
+	public function getSchoolSources($school_id)
+	{
+		// $target_data_sources = ['onsis_all_schools', 'active_schools', 'revoked_schools', 'closed_schools'];
+
+
+		$target_sources = [
+			'active_schools' => 'Ministry Website',
+			'revoked_schools' => 'Ministry Website',
+			'closed_schools' => 'Ministry Website',
+			'onsis_all_schools' => 'File Upload',
+		];
+
+		$target_sources_ids = DataSource::whereIn('name', array_keys($target_sources))->pluck('id');
+		
+		$revisions = SchoolRevision::where('school_id', $school_id)->whereIn('data_source_id', $target_sources_ids)->latest()->get()->unique('data_source_id');
+
+		$school_sources = [];
+
+		foreach ($revisions as $rev) {
+			if($rev->updated_at >= date('Y-m-d',strtotime($rev->dataSource->last_sync)) ) $school_sources[] = $target_sources[$rev->dataSource->name];
+		}
+		
+        return response()->json($school_sources, 200);
+
 
 	}
 
