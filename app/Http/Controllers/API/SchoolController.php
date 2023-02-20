@@ -620,8 +620,8 @@ class SchoolController extends Controller
 		foreach ($revisions as $rev) {
 			if($rev->updated_at >= date('Y-m-d',strtotime($rev->dataSource->last_sync)) ) $school_sources[] = $target_sources[$rev->dataSource->name];
 		}
-		
-        return response()->json($school_sources, 200);
+
+        return response()->json(array_unique($school_sources), 200);
 
 
 	}
