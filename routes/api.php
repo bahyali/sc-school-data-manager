@@ -83,5 +83,5 @@ Route::get('/schools-with-multi-statuses', [App\Http\Controllers\API\SchoolContr
 
 Route::get('/school-sources/{school_id}', [App\Http\Controllers\API\SchoolController::class, 'getSchoolSources']);
 
-
+Route::post('/fix-name-conflict', [App\Http\Controllers\API\SchoolController::class, 'FixNameConflict']);
 

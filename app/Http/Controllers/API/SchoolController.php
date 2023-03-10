@@ -331,7 +331,7 @@ class SchoolController extends Controller
 		$current_data = DataChangeValue::find($request->current_data);
 		$current_data->update([
 						'selected' => true,
-						'type' => 'conflict'
+						'type' => 'latest_data'
 					]);
 
 		$data_change = $current_data->dataChange;	
@@ -355,6 +355,57 @@ class SchoolController extends Controller
 
 		$last_revision['created_at'] = Carbon::now()->toDateTimeString();
 		$record->addRevision($last_revision->toArray(), $ds, false, true, false);
+						
+		return response()->json(['success'], 201);
+	}
+
+	public function FixNameConflict(Request $request){
+
+		$resolutions = json_decode($request->resolutions);
+
+		$data_change = DataChange::find($request->change_id);
+		$school = $data_change->school;
+
+		foreach ($resolutions as $value_id => $res_type) {
+
+			$change = DataChangeValue::find($value_id);
+			$change->update([
+						'selected' => ($res_type == 'latest_data') ? true : false,
+						'type' => $res_type
+			]);
+		}
+
+
+		if (in_array('old_data', (array) $resolutions)){
+			$data_change->update(['status' => 'resolved_declare']);
+			$school->update([
+				'changed_data' => true,
+				'old_name' => DataChangeValue::find(array_search('old_data', (array) $resolutions))->value,
+			]);
+
+		}
+		else{
+			$data_change->update(['status' => 'resolved']);
+			$school->update([
+				'changed_data' => false,
+				'old_name' => NULL,
+			]);
+
+		}
+
+
+		$last_revision = $school->lastRevision()->first();
+		$last_revision->update([
+			'name' => DataChangeValue::find(array_search('latest_data', (array) $resolutions))->value,
+			'updated_at' => Carbon::now()->toDateTimeString()
+		]);
+
+		$ds = DataSource::where('name', 'conflict_fixed')->first();
+		$record = App::make(SchoolRecord::class);
+		$record->fetchSchool($school->id);
+
+		$last_revision['created_at'] = Carbon::now()->toDateTimeString();
+		$record->addRevision($last_revision->toArray(), $ds, false, false, false);
 						
 		return response()->json(['success'], 201);
 	}
