@@ -87,11 +87,3 @@ Route::post('/fix-name-conflict', [App\Http\Controllers\API\SchoolController::cl
 
 
 
-
-
-
-
-
-Route::get('/wht', [App\Http\Controllers\ImporterController::class, 'wht']);
-
-

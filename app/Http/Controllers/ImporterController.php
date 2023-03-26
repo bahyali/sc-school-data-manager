@@ -285,15 +285,6 @@ class ImporterController extends Controller
 
 
 
-
-
-	public function wht()
-	{
-	 	$client = new \GuzzleHttp\Client();
-        return $res = $client->request('GET', 'https://www.history.com/');
-        $html = '' . $res->getBody();
-        return $crawler = new Crawler($html);
-	}
 }
 
 
