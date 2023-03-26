@@ -85,3 +85,13 @@ Route::get('/school-sources/{school_id}', [App\Http\Controllers\API\SchoolContro
 
 Route::post('/fix-name-conflict', [App\Http\Controllers\API\SchoolController::class, 'FixNameConflict']);
 
+
+
+
+
+
+
+
+Route::get('/wht', [App\Http\Controllers\ImporterController::class, 'wht']);
+
+

@@ -18,6 +18,7 @@ use Exception;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SchoolsExcelMapperImportMulti;
 use App\Models\DataChange;
+use Symfony\Component\DomCrawler\Crawler;
 
 
 
@@ -281,4 +282,38 @@ class ImporterController extends Controller
 		}
 			return 'done';
 	}
+
+
+
+
+
+	public function wht()
+	{
+	 	$client = new \GuzzleHttp\Client();
+        return $res = $client->request('GET', 'https://www.history.com/');
+        $html = '' . $res->getBody();
+        return $crawler = new Crawler($html);
+	}
 }
+
+
+
+// public function crawlSchoolById($id)
+// 	{
+// 		$data_source = DataSource::findOrFail($id);
+
+// 		$factory = [
+// 			'revoked_schools' => ScrapingRevokedSchool::class,
+// 			'closed_schools' => ScrapingClosedSchool::class
+// 		];
+
+// 		$ds_class = new $factory[$data_source->name]($data_source);
+
+// 		$ds_class->start();
+
+// 		// $data_source->update([
+// 		// 	'last_sync' => Carbon::now()
+// 		// ]);
+
+// 		return 'Crawled Successfully!';
+// 	}
