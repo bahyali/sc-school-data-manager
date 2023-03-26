@@ -15,7 +15,7 @@ class DataSourceController extends Controller
      */
     public function index()
     {
-        return DataSource::whereNotIn('resource', ['auto_mixer', 'conflict_fixed', 'onsis_all_schools_old'])->paginate();
+        return DataSource::whereNotIn('resource', ['auto_mixer', 'conflict_fixed', 'old_resource'])->paginate();
     }
 
     /**
