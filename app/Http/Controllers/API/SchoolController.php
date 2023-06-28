@@ -64,7 +64,7 @@ class SchoolController extends Controller
 			// ->take(1);
 		}])
 			->where('updated_at', '>=', $date)
-			->skip(150)
+			// ->skip(150)
 			->take(150)
 			->get();
 	}
