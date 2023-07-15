@@ -56,7 +56,7 @@ class SchoolController extends Controller
 			->first();
 
 		// TODO move this inside the model
-		return School::with(['revisions' => function ($query) use ($mixer_source, $date) {
+		return count(School::with(['revisions' => function ($query) use ($mixer_source, $date) {
 			$query
 				->where('data_source_id', $mixer_source->id)
 				->where('updated_at', '>=', $date)
@@ -66,7 +66,7 @@ class SchoolController extends Controller
 			->where('updated_at', '>=', $date)
 			// ->skip(5)
 			// ->take(5)
-			->get();
+			->get());
 	}
 
 
@@ -778,6 +778,9 @@ class SchoolController extends Controller
 			886876	=> '2023/04/01',
 			884747	=> '2023/05/01',
 			669670	=> '2023/03/01',
+			668953	=> '2023/03/01',
+			668526	=> '2023/03/01',
+			
 		];
 
 
