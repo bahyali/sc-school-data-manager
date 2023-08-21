@@ -718,6 +718,110 @@ class SchoolController extends Controller
 
 
 
+	public function getAffiliations(School $school)
+	{
+
+		$lr =  $school->lastRevision;
+		$fields = [];
+		$search_fields = ['owner_business','corporation_contact_name','website','principal_name','telephone'];
+
+		$revisions = SchoolRevision::with(['school.lastRevision' => function ($query) {
+        	    $query->select('id','owner_business','corporation_contact_name','website','principal_name','telephone','name','status');
+    		}])->select('school_id','owner_business','corporation_contact_name','website','principal_name','telephone');
+
+
+		$revisions->where(function ($query) use ($search_fields, $lr, &$fields) {
+		    foreach ($search_fields as $field) {
+		        if ($lr->$field !== null && $lr->$field !== '') {
+		            $query->orWhere($field, $lr->$field);
+                    // $query->orWhere($field, 'like', '%' . $lr->$field . '%');
+
+		            $fields[] = $field;
+		        }
+		    }
+		});
+
+        if ($fields) {
+        	$revisions = $revisions->where('data_source_id', 5)->where('school_id', '!=', $school->id)->distinct()->get();
+
+        	if($revisions){
+	        	$results = [];
+				foreach ($revisions as $revision) {
+
+				    $filteredRevision = array_filter($revision->toArray(), function ($value, $key) use ($lr) {
+				        // return $value !== null;
+				        if ($key === 'school_id' || $key === 'school') {
+				            return true; // Keep the school_id and school relation key
+				        }
+				        return ($value !== null && $value === $lr->$key);
+				    }, ARRAY_FILTER_USE_BOTH);
+
+				     // Extract and merge the last_revision data
+				    if (isset($filteredRevision['school'])) {
+				        $lastRevision = $filteredRevision['school']['last_revision'];
+				        unset($filteredRevision['school']);
+				        $filteredRevision['last_revision'] = $lastRevision;
+				    }
+
+				    $results[] = $filteredRevision;
+				}
+
+				$results = collect($results)->groupBy('school_id')->values();
+				$results = $results->map(function ($group) {
+				    return array_merge(...$group->all());
+				});
+
+
+				$affiliations = [];
+				foreach ($results as $result) {
+					$affiliation['school_id'] = $result['school_id'];
+					$affiliation['school_status'] = $result['last_revision']['status'];
+					$affiliation['school_name'] = $result['last_revision']['name'];
+					$affiliation['fields'] = [];
+					$affiliation['old_fields'] = [];
+					$keys_names = [
+						'owner_business' => 'owner',
+		            	'corporation_name' => 'corporation name',
+		            	'corporation_contact_name' => 'corporation',
+		            	'website' => 'website',
+		            	'telephone' => 'telephone',
+        				'principal_name' => 'principal',
+					];
+
+					foreach ($result as $key => $value) {
+						if($key == 'school_id' || $key == 'last_revision') continue;
+
+						if(array_key_exists($key, $result['last_revision']) && $value == $result['last_revision'][$key]) $affiliation['fields'][] = $keys_names[$key];
+
+						else{
+							$date = SchoolRevision::where($key, $value)->where('school_id', $result['school_id'])->latest()->first()->created_at->toDateTimeString();
+							$affiliation['old_fields'][$keys_names[$key]] = $date;
+						}
+					}
+
+					$affiliations[] = $affiliation;
+				}
+
+				$affiliations;
+			}
+
+		}
+
+		else{
+			$affiliations = collect();
+		}
+
+
+		return response()->json(['data' => $affiliations], 200);
+
+
+
+		
+	}
+
+
+
+
 
 }
 

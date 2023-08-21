@@ -89,6 +89,7 @@ Route::post('/fix-name-conflict', [App\Http\Controllers\API\SchoolController::cl
 
 
 Route::get('/missing-open-dates', [App\Http\Controllers\API\SchoolController::class, 'MissingOpenDates']);
+Route::get('/affiliations/{school}', [App\Http\Controllers\API\SchoolController::class, 'getAffiliations']);
 
 
 
