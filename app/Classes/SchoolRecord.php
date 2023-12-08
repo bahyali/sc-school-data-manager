@@ -6,6 +6,7 @@ use App\Models\School;
 use App\Models\DataSource;
 use App\Models\SchoolRevision;
 use App\Models\DataChange;
+use App\Models\Log;
 
 
 use Exception;
@@ -48,11 +49,14 @@ class SchoolRecord implements ISchoolRecord
         ksort($revision);
 
         $hash = md5(serialize($revision));
-        $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
+
+        if($data_source->name == 'active_schools' && $data_source['configuration']['file_name']){
+            $revision_model = $this->updateOntarioLogs($data_source, $hash, $revision);
+        }
+
+        else $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
 
         $revision_model->touch();
-
-
         // dd($revision_model);
 
         if ($associate) {
@@ -202,7 +206,8 @@ class SchoolRecord implements ISchoolRecord
 
 
 
-    public function fillDates($revision_model){
+    public function fillDates($revision_model)
+    {
 
         $revoked_data_row = SchoolRevision::where('school_id', $this->school->id)->where('revoked_date', '!=', NULL)->latest()->first();
         $closed_date_row = SchoolRevision::where('school_id', $this->school->id)->where('closed_date', '!=', NULL)->latest()->first();
@@ -223,7 +228,37 @@ class SchoolRecord implements ISchoolRecord
         $last_revision->save();
         $last_revision->touch();
 
+    }
 
+
+
+    public function updateOntarioLogs($data_source, $hash, $revision)
+    {
+        if($this->school->lastRevision()->first()){
+            $existed = $this->school->revisions()->where('hash', $hash)->first();
+            if ($existed) $revision_model = $existed; //do nothing cause it is existed before and there is no effect
+            else {
+                $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
+                //CREATE NEW LOG WITH EFFECT = CHANGE cause there are already old revisions
+                Log::create([
+                    'revision_id' => $revision_model->id,
+                    'effect' => 'change',
+                    'resource' => $data_source->configuration['file_name']
+                ]);
+            }
+        }
+
+        else{
+            $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
+            //CREATE NEW LOG WITH EFFECT = ADDED
+            Log::create([
+                'revision_id' => $revision_model->id,
+                'effect' => 'added',
+                'resource' => $data_source->configuration['file_name']
+            ]);
+        }
+
+        return $revision_model;
     }
 }
 

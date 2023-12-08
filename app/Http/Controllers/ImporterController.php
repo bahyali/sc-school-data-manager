@@ -139,53 +139,64 @@ class ImporterController extends Controller
 	}
 
 
-
-	// public function storeRevokedSchools()
-	// {
-	// 	$data_source = DataSource::where('name', 'revoked_schools')
-	// 		->first();
-	// 	$revoked_school = new ScrapingRevokedSchool($data_source);
-	// 	$revoked_school->start();
-
-	// 	return 'done';
-	// }
-
-
-
-	// public function storeClosedSchools()
-	// {
-	// 	$data_source = DataSource::where('name', 'closed_schools')
-	// 		->first();
-	// 	$closed_school = new ScrapingClosedSchool($data_source);
-	// 	$closed_school->start();
-
-	// 	return 'done';
-	// }
-
-
 	public function ontarioImporting()
 	{
-
-
-
 		$context = stream_context_create(
-    array(
-        "http" => array(
-            "header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"
-        )
-    )
-);
+		    array(
+		        "http" => array(
+		            "header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"
+		        )
+		    )
+		);
 		
 		$data_source = DataSource::where('name', 'active_schools')->first();
 		$url = $data_source->configuration['url'];
 		$file = file_get_contents($url, false, $context);
 
-		if (Storage::disk('local')->put('ontario.xlsx', $file))
+		if (Storage::disk('public')->put('ontario.xlsx', $file)){
 			$path = storage_path('app/ontario.xlsx');
+			Storage::disk('public')->put('ontario/all/ontario_'.Carbon::now()->format('m_Y').'.xlsx', $file);
+		}
 		else
 			throw new Exception('Couldn\'t save file!');
 
-		return $this->importFromExcel($data_source, $path);
+		return $this->importOntarioExcel($data_source, $path);
+	}
+
+
+
+	public function importOntarioExcel($data_source, $file)
+	{
+
+		ini_set('max_execution_time', 1800);
+
+		if (!$data_source->active) return 'Data Source is deactivated!';
+		
+		$file_checksum = md5_file($file);
+
+		if ($data_source->checksum !== $file_checksum) {
+			
+			$file_name = 'ontario_'.Carbon::now()->format('d_m_Y').'.xlsx';
+			Storage::disk('public')->put('ontario/changes/'.$file_name, $file);
+
+			$new_configuration = $data_source->configuration;
+			$new_configuration['file_name'] = $file_name;
+			$data_source->configuration = $new_configuration;
+		 	$data_source->save();
+
+		 	(new FirstSheetImporter($data_source))->import($file);
+			
+		 	$data_source->update([
+				'last_sync' => Carbon::now(),
+				'checksum' => $file_checksum
+			]);
+		 	$response = 'File was uploaded & processed successfully!';
+
+		} else {
+			$response = 'This file was uploaded before!';
+			$data_source->touch();
+		}
+		return $response;
 	}
 
 

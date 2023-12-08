@@ -93,5 +93,10 @@ Route::get('/affiliations/{school}', [App\Http\Controllers\API\SchoolController:
 
 
 
+Route::get('/data-sources/ontario/files', [App\Http\Controllers\API\DataSourceController::class, 'getOntarioLogs']);
+
+
+
+
 
 

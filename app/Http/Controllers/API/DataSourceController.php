@@ -5,36 +5,28 @@ namespace App\Http\Controllers\API;
 use App\Models\DataSource;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
+
 
 class DataSourceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
+
     public function index()
     {
         return DataSource::whereNotIn('resource', ['auto_mixer', 'conflict_fixed', 'old_resource'])->paginate();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+
+
     public function store(Request $request)
     {
         //
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\DataSource  $dataSource
-     * @return \Illuminate\Http\Response
-     */
+
+
     public function show($idOrName)
     {
         $ds = DataSource::find($idOrName);
@@ -43,24 +35,13 @@ class DataSourceController extends Controller
         return $ds;
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\DataSource  $dataSource
-     * @return \Illuminate\Http\Response
-     */
+
     public function update(Request $request, DataSource $dataSource)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\DataSource  $dataSource
-     * @return \Illuminate\Http\Response
-     */
+
     public function destroy(DataSource $dataSource)
     {
         //
@@ -72,4 +53,55 @@ class DataSourceController extends Controller
     {
         return DataSource::where('name', $name)->first();
     }
+
+
+
+    // public function getOntarioLogs()
+    // {
+    //     $allFiles = Storage::files('ontario/all');
+    //     $changesFiles = Storage::files('ontario/changes');
+
+    //     $files = array_merge($allFiles, $changesFiles);
+
+    //     return response()->json(['files' => $files]);
+    // }
+
+
+    public function getOntarioLogs()
+    {
+        $unchanged_files = Storage::files('ontario/all');
+        $changed_files = Storage::files('ontario/changes');
+        $all_files = [];
+
+        foreach ($changed_files as $file) {
+
+            //ontario_month_year to compare files inside all folder
+            $name_without_the_day = str_replace('ontario/changes/', '', preg_replace('/(\d{2})_(\d{2})_(\d{4})/', '$2_$3', $file));
+            $all_files[] = ['name' => $name_without_the_day, 'path' => $file, 'changed' => true];
+
+        }
+
+
+        // Add files from "all" folder that don't have the same month as any file in "changes" folder
+        foreach ($unchanged_files as $file) {
+            $file_name = str_replace('ontario/all/', '', $file);
+
+            if(!collect($all_files)->contains('name', $file_name)){
+                $all_files[] = ['name' => $file_name, 'path' => $file, 'changed' => false];
+            }
+        }
+
+        //to sort with month
+        $all_files = collect($all_files)->sortBy(function ($file) {
+            return $file['name'];
+        })
+        ->values()
+        ->all();;
+
+        return response()->json(['all_files' => $all_files]);
+    }
+
+
+    
 }
+

@@ -43,6 +43,7 @@ class DataSourcesSeeder extends Seeder
                         'association_membership' => 17,
                     ],
                     'date_columns' => [],
+                    'file_name' => '',
                 ],
                 'resource' => 'excel',
                 'url' => NULL,

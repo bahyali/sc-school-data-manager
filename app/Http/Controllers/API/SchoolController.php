@@ -412,21 +412,6 @@ class SchoolController extends Controller
 
 
 
-
-	//TEMP
-	public function dataChangesUpdate(){
-
-		foreach(DataChange::all() as $dataChange){
-			$dataChange->school_id = $dataChange->getSchools()[0]['id'];
-			$dataChange->save();
-		}
-		return 'done!';
-	}
-
-
-
-
-
 	public function getChangedData($school_id, $column = null){
 
 		$data_changes = DataChange::where('school_id', $school_id)->where('status', 'resolved_declare');
@@ -468,7 +453,8 @@ class SchoolController extends Controller
 
 
 
-
+	//To list missing data in the Private school contact information data file
+	//To list schools with empty values in specific columns
 	public function missingData()
 	{
 
@@ -509,12 +495,7 @@ class SchoolController extends Controller
 
 
 
-
-
-
-
-
-
+	//To get schools with empty values in specific columns in single page
 	public function missingDataResults($missing_column, $filling_column = null)
 	{
 		
@@ -534,7 +515,7 @@ class SchoolController extends Controller
 
 
 
-
+	//To show difference in counts between schools in SC and Ministry datafile 
 	public function missingDataSourceSchools($school_status, $data_source)
 	{
 		$data_source_name = $school_status."_schools";
@@ -570,7 +551,7 @@ class SchoolController extends Controller
 
 
 
-
+	//to list schools are listed as active while also listed as closed or revoked.
 	public function multiStatusesSchools()
 	{
 		$multi_statuses_school = DataChange::with('school')->where('column', 'status')->where('status', 'not_resolved')->latest()->get()->unique('school_id')->pluck('school');
@@ -578,82 +559,8 @@ class SchoolController extends Controller
 	}
 
 
-	public function tempp($user_admin = false)
-	{
-
-
-		DB::statement('SET GLOBAL group_concat_max_len = 1000000');
-		$all_schools = School::select('status', DB::raw('GROUP_CONCAT(id) as ids'))
-						    ->groupBy('status')
-						    ->get();
-
-		    $all_schools->map(function($column) {
-			    $column->ids = explode(',', $column->ids);
-			});
-
-		$all_active_ids = $all_schools[array_search('active', array_column($all_schools->toArray(), 'status'))]->ids;
-		$all_closed_ids = $all_schools[array_search('closed', array_column($all_schools->toArray(), 'status'))]->ids;
-		$all_revoked_ids = $all_schools[array_search('revoked', array_column($all_schools->toArray(), 'status'))]->ids;
-
-		$data_sources = DataSource::whereIn('name',['active_schools','revoked_schools','closed_schools'])->groupBy('name')->select('id','name','last_sync','configuration')->get();
-
-		$closed_ministry_ds = $data_sources[array_search('closed_schools', array_column($data_sources->toArray(),'name'))];
-		$revoked_ministry_ds = $data_sources[array_search('revoked_schools', array_column($data_sources->toArray(),'name'))];
-		$active_ministry_ds = $data_sources[array_search('active_schools', array_column($data_sources->toArray(),'name'))];
-
-	
-	 	$schools_with_sec_level_and_missing_ossd = 0;
-        $schools_with_ossd_and_missing_principal_name = 0;
-        $schools_with_ossd_and_missing_website = 0;
-        $schools_with_missing_program_type = 0;
-        $closed = [];
-        $revoked = [];
-        $active = [];
-        
-
-		$revisions = SchoolRevision::orderBy('school_id')->whereIn('data_source_id',[1,3,4])->latest()->get();
-		
-		foreach ($revisions as $rev) {
-			if($rev->data_source_id == $active_ministry_ds->id && $rev->updated_at >= date('Y-m-d',strtotime($active_ministry_ds->last_sync))){
-				if($rev->level && $rev->level != 'Elementary' && is_null($rev->ossd_credits_offered)) $schools_with_sec_level_and_missing_ossd++;
-				if($rev->ossd_credits_offered && is_null($rev->principal_name)) $schools_with_ossd_and_missing_principal_name++;
-				if($rev->ossd_credits_offered && is_null($rev->website)) $schools_with_ossd_and_missing_website++;
-				if(is_null($rev->program_type)) $schools_with_missing_program_type++;
-				$active[] = $rev->school_id;
-
-			}
-			if($rev->data_source_id == $closed_ministry_ds->id && $rev->updated_at >= date('Y-m-d',strtotime($closed_ministry_ds->last_sync)) && in_array($rev->school_id, $all_closed_ids)){
-				$closed[] = $rev->school_id;
-			}
-
-
-			if($rev->data_source_id == $revoked_ministry_ds->id && $rev->updated_at >= date('Y-m-d',strtotime($revoked_ministry_ds->last_sync)) && in_array($rev->school_id, $all_revoked_ids)){
-				$revoked[] = $rev->school_id;
-			}
-
-		}
-
-
-
-		return response()->json([
-			'sec_level_and_missing_ossd_count' => $schools_with_sec_level_and_missing_ossd,
-			'ossd_and_missing_principal_name_count' => $schools_with_ossd_and_missing_principal_name,
-			'ossd_and_missing_website_count' => $schools_with_ossd_and_missing_website,
-			'missing_program_type_count' => $schools_with_missing_program_type,
-			'ministry_datafile_url' => $active_ministry_ds->configuration['webpage'],
-			'active_in_sc_but_not_in_ministry_count' => ($user_admin) ? count($all_active_ids) - count(array_unique($active)) : 0,
-			'closed_in_sc_but_not_in_ministry_count' => ($user_admin) ? count($all_closed_ids) - count(array_unique($closed)) : 0,
-			'revoked_in_sc_but_not_in_ministry_count' => ($user_admin) ? count($all_revoked_ids) - count(array_unique($revoked)) : 0,
-		], 200);
-
-	}
-
-
-
 	public function getSchoolSources($school_id)
 	{
-		// $target_data_sources = ['onsis_all_schools', 'active_schools', 'revoked_schools', 'closed_schools'];
-
 
 		$target_sources = [
 			'active_schools' => 'Ministry Website',
@@ -674,47 +581,6 @@ class SchoolController extends Controller
         return response()->json(array_values(array_unique($school_sources)), 200);
 
 	}
-
-
-
-
-	public function MissingOpenDates()
-	{
-
-		$dates = [
-			884609	=> '2023/05/01',
-			668440	=> '2023/05/01',
-			668168	=> '2023/05/01',
-			669812	=> '2023/03/01',
-			884329	=> '2023/03/01', 
-			882645	=> '2023/03/01', 
-			881377	=> '2023/03/01',
-			669767	=> '2023/03/01',
-			887502	=> '2023/03/01',
-			886876	=> '2023/04/01',
-			884747	=> '2023/05/01',
-			668953	=> '2023/03/01',
-			668526	=> '2023/03/01',
-			
-		];
-
-
-
-		$schools = [];
-		foreach ($dates as $key => $value) {
-			$school = School::where('number', $key)->first();
-			$school->lastRevision->open_date = $value;
-
-			$school->touch();
-			$school->lastRevision->touch();
-
-		}
-
-
-		return 'Done!';
-
-	}
-
 
 
 
@@ -811,15 +677,9 @@ class SchoolController extends Controller
 			$affiliations = collect();
 		}
 
-
 		return response()->json(['data' => $affiliations], 200);
-
-
-
 		
 	}
-
-
 
 
 
