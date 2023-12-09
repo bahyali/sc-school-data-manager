@@ -10,4 +10,10 @@ class Log extends Model
     use HasFactory;
     protected $guarded = ['id'];
 
+
+    public function revision()
+    {
+        return $this->belongsTo(SchoolRevision::class);
+    }
+
 }

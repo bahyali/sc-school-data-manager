@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use App\Models\Log;
+
 
 
 class DataSourceController extends Controller
@@ -67,17 +69,22 @@ class DataSourceController extends Controller
     // }
 
 
-    public function getOntarioLogs()
+    public function getOntarioFiles()
     {
-        $unchanged_files = Storage::files('ontario/all');
-        $changed_files = Storage::files('ontario/changes');
+        $unchanged_files = Storage::disk('public')->files('ontario/all');
+        $changed_files = Storage::disk('public')->files('ontario/changes');
         $all_files = [];
 
         foreach ($changed_files as $file) {
 
-            //ontario_month_year to compare files inside all folder
+            //convert name to this format 'ontario_month_year' to compare files inside all folder
             $name_without_the_day = str_replace('ontario/changes/', '', preg_replace('/(\d{2})_(\d{2})_(\d{4})/', '$2_$3', $file));
-            $all_files[] = ['name' => $name_without_the_day, 'path' => $file, 'changed' => true];
+            $all_files[] = [
+                'name' => $name_without_the_day,
+                'path' => Storage::url($file),
+                'changed' => true,
+                'original_name' => str_replace('ontario/changes/', '', $file)//to search database!
+            ];
 
         }
 
@@ -87,7 +94,7 @@ class DataSourceController extends Controller
             $file_name = str_replace('ontario/all/', '', $file);
 
             if(!collect($all_files)->contains('name', $file_name)){
-                $all_files[] = ['name' => $file_name, 'path' => $file, 'changed' => false];
+                $all_files[] = ['name' => $file_name, 'path' => Storage::url($file), 'changed' => false, 'original_name' => $file_name];
             }
         }
 
@@ -101,6 +108,12 @@ class DataSourceController extends Controller
         return response()->json(['all_files' => $all_files]);
     }
 
+
+
+     public function getOntarioFileLogs(Request $request)
+     {
+        return Log::where('resource', $request->file_name)->get();
+     }
 
     
 }

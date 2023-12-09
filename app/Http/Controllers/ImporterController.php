@@ -151,14 +151,24 @@ class ImporterController extends Controller
 		
 		$data_source = DataSource::where('name', 'active_schools')->first();
 		$url = $data_source->configuration['url'];
-		$file = file_get_contents($url, false, $context);
 
-		if (Storage::disk('public')->put('ontario.xlsx', $file)){
-			$path = storage_path('app/ontario.xlsx');
-			Storage::disk('public')->put('ontario/all/ontario_'.Carbon::now()->format('m_Y').'.xlsx', $file);
+		$temp_url = Storage::path('december-test.xlsx');
+
+		$file = file_get_contents($temp_url, false, $context);
+
+		$monthlyFilePath = 'ontario/all/ontario_' . Carbon::now()->format('m_Y') . '.xlsx';
+
+		if (Storage::disk('public')->exists($monthlyFilePath)) {
+		    Storage::disk('public')->delete($monthlyFilePath);
 		}
+
+		if (Storage::disk('public')->put($monthlyFilePath, $file)){
+			$path = storage_path('app/public/'.$monthlyFilePath);
+		}
+
 		else
 			throw new Exception('Couldn\'t save file!');
+
 
 		return $this->importOntarioExcel($data_source, $path);
 	}
@@ -168,6 +178,14 @@ class ImporterController extends Controller
 	public function importOntarioExcel($data_source, $file)
 	{
 
+
+		$context = stream_context_create(
+		    array(
+		        "http" => array(
+		            "header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"
+		        )
+		    )
+		);
 		ini_set('max_execution_time', 1800);
 
 		if (!$data_source->active) return 'Data Source is deactivated!';
@@ -176,8 +194,10 @@ class ImporterController extends Controller
 
 		if ($data_source->checksum !== $file_checksum) {
 			
-			$file_name = 'ontario_'.Carbon::now()->format('d_m_Y').'.xlsx';
-			Storage::disk('public')->put('ontario/changes/'.$file_name, $file);
+			$file_name = 'ontario_'.Carbon::now()->format('d_m_Y').'.xlsx';			
+			$file_content = file_get_contents($file, false, $context);
+
+			Storage::disk('public')->put('ontario/changes/'.$file_name, $file_content);
 
 			$new_configuration = $data_source->configuration;
 			$new_configuration['file_name'] = $file_name;
@@ -185,6 +205,7 @@ class ImporterController extends Controller
 		 	$data_source->save();
 
 		 	(new FirstSheetImporter($data_source))->import($file);
+
 			
 		 	$data_source->update([
 				'last_sync' => Carbon::now(),

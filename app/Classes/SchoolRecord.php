@@ -50,6 +50,8 @@ class SchoolRecord implements ISchoolRecord
 
         $hash = md5(serialize($revision));
 
+
+        //to store Ministry datafile changes every month 
         if($data_source->name == 'active_schools' && $data_source['configuration']['file_name']){
             $revision_model = $this->updateOntarioLogs($data_source, $hash, $revision);
         }
@@ -239,7 +241,7 @@ class SchoolRecord implements ISchoolRecord
             if ($existed) $revision_model = $existed; //do nothing cause it is existed before and there is no effect
             else {
                 $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
-                //CREATE NEW LOG WITH EFFECT = CHANGE cause there are already old revisions
+                //CREATE NEW LOG WITH EFFECT equal 'CHANGE' cause there are already old revisions
                 Log::create([
                     'revision_id' => $revision_model->id,
                     'effect' => 'change',
@@ -250,7 +252,7 @@ class SchoolRecord implements ISchoolRecord
 
         else{
             $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
-            //CREATE NEW LOG WITH EFFECT = ADDED
+            //CREATE NEW LOG WITH EFFECT = 'ADDED'
             Log::create([
                 'revision_id' => $revision_model->id,
                 'effect' => 'added',
