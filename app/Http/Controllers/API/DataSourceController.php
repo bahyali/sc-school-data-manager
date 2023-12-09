@@ -82,7 +82,7 @@ class DataSourceController extends Controller
             $all_files[] = [
                 'name' => $name_without_the_day,
                 // 'path' => Storage::url($file),
-                'path' => Storage::url('public/'.$file),
+                'path' => 'public'.Storage::url($file),
                 'changed' => true,
                 'original_name' => str_replace('ontario/changes/', '', $file)//to search database!
             ];
@@ -95,7 +95,7 @@ class DataSourceController extends Controller
             $file_name = str_replace('ontario/all/', '', $file);
 
             if(!collect($all_files)->contains('name', $file_name)){
-                $all_files[] = ['name' => $file_name, 'path' => Storage::url('public/'.$file), 'changed' => false, 'original_name' => $file_name];
+                $all_files[] = ['name' => $file_name, 'path' => 'public'.Storage::url($file), 'changed' => false, 'original_name' => $file_name];
             }
         }
 
