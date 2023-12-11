@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use App\Models\Log;
+use App\Models\SchoolRevision;
 
 
 
@@ -114,6 +115,39 @@ class DataSourceController extends Controller
      public function getOntarioFileLogs(Request $request)
      {
         return Log::where('resource', $request->file_name)->get();
+     }
+
+
+
+     public function getOntarioFileSingleLog(Log $log)
+     {
+        $log_revision = $log->revision;
+        $differences = [];
+
+
+        if($log->effect == 'change'){
+
+            $the_revision_before = SchoolRevision::where('school_id', $log_revision->school_id)
+                ->where('data_source_id', $log_revision->data_source_id)
+                ->where('created_at', '<', $log_revision->created_at)
+                ->latest()
+                ->first();
+
+            $excluded_keys = ['id', 'created_at', 'updated_at', 'hash'];
+            
+            foreach (collect($log_revision) as $key => $value) {
+                if (!in_array($key, $excluded_keys) && $value != $the_revision_before[$key]) {
+
+                    $differences[$key] = [
+                        'before' => $the_revision_before[$key],
+                        'after' => $value,
+                    ];
+                }
+            }
+
+        }
+
+        return response()->json(['log' => $log, 'school' => $log_revision->school, 'differences' => $differences]);
      }
 
     

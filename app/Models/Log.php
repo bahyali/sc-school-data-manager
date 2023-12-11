@@ -9,6 +9,7 @@ class Log extends Model
 {
     use HasFactory;
     protected $guarded = ['id'];
+    protected $hidden = ['revision'];
 
 
     public function revision()
