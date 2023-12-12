@@ -152,9 +152,9 @@ class ImporterController extends Controller
 		$data_source = DataSource::where('name', 'active_schools')->first();
 		$url = $data_source->configuration['url'];
 
-		$temp_url = Storage::path('december-test.xlsx');
+		// $temp_url = Storage::path('december-test.xlsx');
 
-		$file = file_get_contents($temp_url, false, $context);
+		$file = file_get_contents($url, false, $context);
 
 		$monthlyFilePath = 'ontario/all/ontario_' . Carbon::now()->format('m_Y') . '.xlsx';
 
