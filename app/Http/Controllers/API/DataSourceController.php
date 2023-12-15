@@ -112,9 +112,9 @@ class DataSourceController extends Controller
 
 
 
-     public function getOntarioFileLogs(Request $request)
+     public function getOntarioFileLogs($file_name)
      {
-        return Log::where('resource', $request->file_name)->get();
+        return Log::where('resource', $file_name)->get();
      }
 
 
