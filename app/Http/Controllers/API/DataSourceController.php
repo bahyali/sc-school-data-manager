@@ -107,7 +107,7 @@ class DataSourceController extends Controller
         ->values()
         ->all();;
 
-        return response()->json(['all_files' => $all_files]);
+        return response()->json(['data' => $all_files]);
     }
 
 
