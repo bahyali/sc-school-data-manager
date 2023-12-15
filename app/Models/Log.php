@@ -17,4 +17,11 @@ class Log extends Model
         return $this->belongsTo(SchoolRevision::class);
     }
 
+
+    //this is the same method as the revision() but we made it to prevent using revision in single log API
+    public function getRevision()
+    {
+        return $this->belongsTo(SchoolRevision::class, 'revision_id');
+    }
+
 }
