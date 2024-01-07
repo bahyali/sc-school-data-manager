@@ -80,7 +80,7 @@ class DataSourceController extends Controller
         foreach ($changed_files as $file) {
             $all_files[] = [
                 'name' => $file,
-                'path' => url(Storage::url('ontario/changes/'.$file)),
+                'path' => url('public' . Storage::url('ontario/changes/'.$file)),
                 'changed' => true,
                 'created_at' => Storage::disk('public')->lastModified('ontario/changes/'.$file),
             ];
@@ -93,7 +93,7 @@ class DataSourceController extends Controller
             if(!collect($all_files)->contains('name', $file)){
                 $all_files[] = [
                     'name' => $file,
-                    'path' => url(Storage::url('ontario/'.$file)),
+                    'path' => url('public' . Storage::url('ontario/'.$file)),
                     'changed' => false,
                     'created_at' => Storage::disk('public')->lastModified('ontario/'.$file),
 
