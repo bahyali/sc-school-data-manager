@@ -46,7 +46,7 @@ class DataSourcesSeeder extends Seeder
                     'file_name' => '',
                 ],
                 'resource' => 'excel',
-                'url' => NULL,
+                'url' => 'https://data.ontario.ca/dataset/7a049187-cf29-4ffe-9028-235b95c61fa3/resource/6545c5ec-a5ce-411c-8ad5-d66363da8891/',
                 'active' => 1,
                 'priority' => 1,
             ],
