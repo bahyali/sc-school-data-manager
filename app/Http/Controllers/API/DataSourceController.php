@@ -72,40 +72,40 @@ class DataSourceController extends Controller
 
     public function getOntarioFiles()
     {
-        $unchanged_files = Storage::disk('public')->files('ontario/all');
-        $changed_files = Storage::disk('public')->files('ontario/changes');
+
+        $changed_files = array_map('basename', Storage::disk('public')->files('ontario/changes'));
+        $unchanged_files = array_map('basename', Storage::disk('public')->files('ontario'));
         $all_files = [];
 
         foreach ($changed_files as $file) {
-
-            //convert name to this format 'ontario_month_year' to compare files inside all folder
-            $name_without_the_day = str_replace('ontario/changes/', '', preg_replace('/(\d{2})_(\d{2})_(\d{4})/', '$2_$3', $file));
             $all_files[] = [
-                'name' => $name_without_the_day,
-                // 'path' => Storage::url($file),
-                'path' => url('public' . Storage::url($file)),
+                'name' => $file,
+                'path' => url(Storage::url('ontario/changes/'.$file)),
                 'changed' => true,
-                'original_name' => str_replace('ontario/changes/', '', $file)//to search database!
+                'created_at' => Storage::disk('public')->lastModified('ontario/changes/'.$file),
             ];
 
         }
 
 
-        // Add files from "all" folder that don't have the same month as any file in "changes" folder
+        // Add files from "all" folder that don't have the same name as any file in "changes" folder
         foreach ($unchanged_files as $file) {
-            $file_name = str_replace('ontario/all/', '', $file);
+            if(!collect($all_files)->contains('name', $file)){
+                $all_files[] = [
+                    'name' => $file,
+                    'path' => url(Storage::url('ontario/'.$file)),
+                    'changed' => false,
+                    'created_at' => Storage::disk('public')->lastModified('ontario/'.$file),
 
-            if(!collect($all_files)->contains('name', $file_name)){
-                $all_files[] = ['name' => $file_name, 'path' => url('public' . Storage::url($file)), 'changed' => false, 'original_name' => $file_name];
+                ];
             }
         }
 
+        // return $all_files;
         //to sort with month
-        $all_files = collect($all_files)->sortBy(function ($file) {
-            return $file['name'];
-        })
-        ->values()
-        ->all();;
+        $all_files = collect($all_files)->sortByDesc(function ($file) {
+            return $file['created_at'];
+        })->values()->all();
 
         return response()->json(['data' => $all_files]);
     }

@@ -18,7 +18,7 @@ use Exception;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SchoolsExcelMapperImportMulti;
 use App\Models\DataChange;
-use Symfony\Component\DomCrawler\Crawler;
+// use Symfony\Component\DomCrawler\Crawler;
 
 
 
@@ -139,6 +139,8 @@ class ImporterController extends Controller
 	}
 
 
+
+
 	public function ontarioImporting()
 	{
 		$context = stream_context_create(
@@ -152,32 +154,42 @@ class ImporterController extends Controller
 		$data_source = DataSource::where('name', 'active_schools')->first();
 		$url = $data_source->configuration['url'];
 
-		// $temp_url = Storage::path('december-test.xlsx');
+		$html_url = $data_source->url;
+		$html_page_content = file_get_contents($html_url, false, $context);
 
-		$file = file_get_contents($url, false, $context);
+    	// preg_match('/<a\s+class="dataset-download-link resource-url-analytics resource-type-None"\s+href="([^"]+)"/i', $html_page_content, $matches);
+    	preg_match('/<a\s+class="[^"]*dataset-download-link[^"]*"\s+href="([^"]+)"/i', $html_page_content, $matches);
 
-		$monthlyFilePath = 'ontario/all/ontario_' . Carbon::now()->format('m_Y') . '.xlsx';
-
-		if (Storage::disk('public')->exists($monthlyFilePath)) {
-		    Storage::disk('public')->delete($monthlyFilePath);
+		if (!empty($matches[1])) {
+	      	$href = $matches[1];
+		 	$file_name = pathinfo($href, PATHINFO_BASENAME);
+			$file = file_get_contents($href, false, $context);
+		} else {
+		    return "Link not found.";
 		}
 
-		if (Storage::disk('public')->put($monthlyFilePath, $file)){
-			$path = storage_path('app/public/'.$monthlyFilePath);
+
+		$filePath = 'ontario/'.$file_name;
+
+		if (Storage::disk('public')->exists($filePath)) {
+		    Storage::disk('public')->delete($filePath);
+		}
+
+		if (Storage::disk('public')->put($filePath, $file)){
+			$path = storage_path('app/public/'.$filePath);
 		}
 
 		else
 			throw new Exception('Couldn\'t save file!');
 
 
-		return $this->importOntarioExcel($data_source, $path);
+		return $this->importOntarioExcel($data_source, $path, $file_name);
 	}
 
 
 
-	public function importOntarioExcel($data_source, $file)
+	public function importOntarioExcel($data_source, $file, $file_name)
 	{
-
 
 		$context = stream_context_create(
 		    array(
@@ -193,11 +205,17 @@ class ImporterController extends Controller
 		$file_checksum = md5_file($file);
 
 		if ($data_source->checksum !== $file_checksum) {
-			
-			$file_name = 'ontario_'.Carbon::now()->format('d_m_Y').'.xlsx';			
+
 			$file_content = file_get_contents($file, false, $context);
 
-			Storage::disk('public')->put('ontario/changes/'.$file_name, $file_content);
+			$filePath = 'ontario/changes/'.$file_name;
+
+			if (Storage::disk('public')->exists($filePath)) {
+			    Storage::disk('public')->delete($filePath);
+			}
+
+
+			Storage::disk('public')->put($filePath, $file_content);
 
 			$new_configuration = $data_source->configuration;
 			$new_configuration['file_name'] = $file_name;
@@ -206,11 +224,11 @@ class ImporterController extends Controller
 
 		 	(new FirstSheetImporter($data_source))->import($file);
 
-			
 		 	$data_source->update([
 				'last_sync' => Carbon::now(),
 				'checksum' => $file_checksum
 			]);
+
 		 	$response = 'File was uploaded & processed successfully!';
 
 		} else {
