@@ -38,10 +38,21 @@ class DataMixer
         // Get latest revision from each data source sorted
         $latest_revisions = $this->getLatestRevisions($school);
 
+        $latest_revisions = $latest_revisions->unique(function ($item) {
+            return $item['id'];
+        });
+
+        // dd($latest_revisions);
+        
         $remix = $this->mix($latest_revisions);
 
+        
+
+        // dd($remix);
 
         if ($remix){
+            
+            $remix->forget(['id', 'updated_at']);
 
             // if($remix['status'] == 'active'){
             //     $remix['revoked_date'] = NULL; 
@@ -62,7 +73,7 @@ class DataMixer
 
     private function clean($item, $key)
     {
-        return !($item == null || in_array($key, ['created_at', 'updated_at', 'id', 'hash']));
+        return !($item == null || in_array($key, ['created_at', 'hash']));
     }
 
     private function mix(Collection $entries)
@@ -126,10 +137,12 @@ class DataMixer
             // Sort by order of operations (closed > revoked > active)
         })->filter(function ($revision) {
             return $revision;
-        })->sortBy(function ($revision) use ($SORT) {
-            // return array_search($revision->get('status'), $SORT);
-            return array_search($revision->get('data_source_id'), $SORT);
-        });
+        })
+        // ->sortBy(function ($revision) use ($SORT) {
+        //     // return array_search($revision->get('status'), $SORT);
+        //     return array_search($revision->get('data_source_id'), $SORT);
+        // });
+        ->sortBy('updated_at');
 
         if($latest_revisions){
             $latest_revisions = $this->managingDatasourcesPriorities($latest_revisions);

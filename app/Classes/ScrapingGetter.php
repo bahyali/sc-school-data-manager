@@ -51,6 +51,19 @@ class ScrapingGetter
         $array['data_source_id'] = $this->data_source->id;
         $array['status'] = $this->data_source['configuration']['overrides']['status'];
 
+
+        // $test_array = ["name" => "LAST ONEeee",
+        //               "number" => "666085",
+        //               "address_line_1" => "205B-8525 McCowan Road Markham, Ontario L3P 5E5",
+        //               "street" => "205B-8525 McCowan Road Markham",
+        //               // "postal_code" => "L3P 5E5",
+        //               "principal_name" => "Fariha Riaz",
+        //               "owner_business" => "Fariha Riaz",
+        //               "closed_date" => "2022-23 ",
+        //               "data_source_id" => 4,
+        //               "status" => "closed"
+        //           ];
+                  
         $school = $record->addSchool($array['number']);
         $school->addRevision($array, $this->data_source);
     }
