@@ -42,13 +42,13 @@ class DataMixer
             return $item['id'];
         });
 
-        // dd($latest_revisions);
+        dd($latest_revisions);
         
         $remix = $this->mix($latest_revisions);
 
         
 
-        // dd($remix);
+        dd($remix);
 
         if ($remix){
             

@@ -52,20 +52,20 @@ class ScrapingGetter
         $array['status'] = $this->data_source['configuration']['overrides']['status'];
 
 
-        // $test_array = ["name" => "LAST ONEeee",
-        //               "number" => "666085",
-        //               "address_line_1" => "205B-8525 McCowan Road Markham, Ontario L3P 5E5",
-        //               "street" => "205B-8525 McCowan Road Markham",
-        //               // "postal_code" => "L3P 5E5",
-        //               "principal_name" => "Fariha Riaz",
-        //               "owner_business" => "Fariha Riaz",
-        //               "closed_date" => "2022-23 ",
-        //               "data_source_id" => 4,
-        //               "status" => "closed"
-        //           ];
-                  
-        $school = $record->addSchool($array['number']);
-        $school->addRevision($array, $this->data_source);
+        $test_array = ["name" => "Wali ul Asr School-Niagara Campus",
+                      "number" => "888393",
+                      "address_line_1" => "8333 Willoughby Drive Niagara Falls, Ontario L2G 6X4",
+                      "street" => "8333 Willoughby Drive Niagara Falls",
+                      "postal_code" => "L2G 6X4",
+                      "principal_name" => "Zaidi Mohsin",
+                      "owner_business" => "Zaidi Syed",
+                      "closed_date" => "2018-19 ",
+                      "data_source_id" => 4,
+                      "status" => "closed"
+                  ];
+
+        $school = $record->addSchool($test_array['number']);
+        $school->addRevision($test_array, $this->data_source);
     }
 
 
