@@ -48,7 +48,7 @@ class DataMixer
 
         
 
-        dd($remix);
+        // dd($remix);
 
         if ($remix){
             
