@@ -123,7 +123,10 @@ class ImporterController extends Controller
 
 		if ($factory[$ds_name]['data_source']->active) {
 			$ds_class = new $factory[$ds_name]['class']($factory[$ds_name]['data_source']);
+
+			DB::beginTransaction();
 			$ds_class->start();
+			DB::commit();
 
 
 			// $factory[$ds_name]['data_source']->update([

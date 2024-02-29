@@ -27,7 +27,9 @@ class ScrapingClosedSchool extends ScrapingGetter
 			$this->data_source->touch();
 		} else {
 
-			$whole_page_data = $crawler->filter('.body-field h3:contains("school year")');
+			// $whole_page_data = $crawler->filter('.body-field');
+     		$whole_page_data = $crawler->filter('.body-field h3:contains("school year")');
+
 			$this->scrapeAndStore($whole_page_data);
 			$this->dataSourceUpdate($html_checksum);
 		}
@@ -38,9 +40,9 @@ class ScrapingClosedSchool extends ScrapingGetter
 	public function scrapeAndStore($nodeValues)
 	{
 
-		$nodeValues->each(function ($node) {
+		$temp = $nodeValues;
+		$nodeValues->each(function ($node) use($temp) {
 
-			$closed_year = preg_replace("/[a-zA-Z]+/", '', $node->text());
 			$table_content = $node->nextAll()->first()->filter('table tbody')->filter('tr')->each(function ($tr, $i) {
 				return $tr->filter('td')->each(function ($td, $i) {
 					if($i == 2) return trim($td->html());
@@ -48,8 +50,23 @@ class ScrapingClosedSchool extends ScrapingGetter
 				});
 			});
 
+			// dd($table_content);
 
 			foreach ($table_content as $value) {
+				$closed_year = '';
+				$temp->filter('h3')->each(function (Crawler $h3Node) use (&$closed_year, $value) {
+				    if (stripos($h3Node->text(), 'school year') !== false) {
+				        $nextSibling = $h3Node->nextAll()->filter(':contains("'.$value[0].'")')->first();
+				        if ($nextSibling->count() > 0) {
+				            $closed_year = $h3Node->text();
+				        }
+				    }
+				});
+
+
+				$closed_year = trim(preg_replace("/[a-zA-Z]+/", '', $closed_year));
+				// dd($closed_year);
+
 				$scraper_school = [];
 				$scraper_school['name'] = $value[0];
 
@@ -69,11 +86,10 @@ class ScrapingClosedSchool extends ScrapingGetter
 				$scraper_school['owner_business'] = $value[4];
 				$scraper_school['closed_date'] = $this->getClosingYear($closed_year);
 
-				// dd($scraper_school);
 				$this->storeScrapingSchool($scraper_school);
 
-
 			}
+
 		});
 	}
 
