@@ -28,6 +28,8 @@ class OntarioOldFilesImporterController extends Controller
 		    )
 		);
 		$file_name =  $request->file('old_ontario_file')->getClientOriginalName();
+		$file_name =  str_replace([' ', '-'], '_', $file_name);
+		
 		$file_content = file_get_contents($request->file('old_ontario_file'), false, $context);
 		$data_source = DataSource::where('name', 'active_schools')->first();
 		$filePath = 'ontario/'.$file_name;

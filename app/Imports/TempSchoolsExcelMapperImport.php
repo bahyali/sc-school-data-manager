@@ -117,7 +117,8 @@ class TempSchoolsExcelMapperImport implements ToModel, WithStartRow
 
 
     private function extractYearAndMonth($string) {
-    preg_match('/(\d{1,2})_([a-zA-Z]+) (\d{4})/', $string, $matches);
+    // preg_match('/(\d{1,2})_([a-zA-Z]+) (\d{4})/', $string, $matches);
+    preg_match('/(\d{1,2})_([a-zA-Z]+)_?(\d{4})/', $string, $matches);
     if ($matches) {
         $month = date_parse($matches[2])['month'];
         if ($month !== false && $month !== 0) {
