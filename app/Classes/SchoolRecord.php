@@ -238,10 +238,10 @@ class SchoolRecord implements ISchoolRecord
     {
         if($this->school->lastRevision()->first()){
             $existed = $this->school->revisions()->where('hash', $hash)->first();
-            if ($existed) $revision_model = $existed; //do nothing cause it is existed before and there is no effect
+            if ($existed) $revision_model = $existed; //do nothing because it is existed before and there is no effect
             else {
                 $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
-                //CREATE NEW LOG WITH EFFECT equal 'CHANGE' cause there are already old revisions
+                //CREATE NEW LOG WITH EFFECT equal 'CHANGE' because there are already old revisions
                 Log::create([
                     'revision_id' => $revision_model->id,
                     'effect' => 'change',

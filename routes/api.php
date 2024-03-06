@@ -99,6 +99,10 @@ Route::get('/data-sources/ontario/log/{log}', [App\Http\Controllers\API\DataSour
 
 
 
+Route::post('/importing-old-files', [App\Http\Controllers\OntarioOldFilesImporterController::class, 'importOntarioOldFiles']);
+
+
+
 
 
 
