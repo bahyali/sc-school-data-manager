@@ -72,11 +72,22 @@ class OntarioSchoolRecord
 
 
             $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
-            Log::create([
+            // Log::create([
+            //     'revision_id' => $revision_model->id,
+            //     'effect' => 'added',
+            //     'resource' => $data_source->configuration['file_name'],
+            //     'school_id' => $this->school->id
+            // ]);
+
+            Log::updateOrCreate([
+                'school_id' => $this->school->id,
+                'effect' => 'added'
+            ],
+            [
                 'revision_id' => $revision_model->id,
-                'effect' => 'added',
                 'resource' => $data_source->configuration['file_name']
             ]);
+
 
 
 
@@ -96,7 +107,8 @@ class OntarioSchoolRecord
                 Log::create([
                     'revision_id' => $revision_model->id,
                     'effect' => 'change',
-                    'resource' => $data_source->configuration['file_name']
+                    'resource' => $data_source->configuration['file_name'],
+                    'school_id' => $this->school->id
                 ]);
             }
         }

@@ -24,6 +24,8 @@ class TempSchoolsExcelMapperImport implements ToModel, WithStartRow
     public function __construct($data_source)
     {
 
+
+        // dd($data_source);
         $this->data_source = $data_source;
         $this->configuration = $data_source->configuration;
         $this->file_date = $this->extractYearAndMonth($this->configuration['file_name']);
@@ -40,11 +42,126 @@ class TempSchoolsExcelMapperImport implements ToModel, WithStartRow
                           "principal_name" => 9,
                           "level" => 10,
                           "ossd_credits_offered" => 11,
-                          "type" => 12,
+                          // "type" => 12,
                           "association_membership" => 13,
-                          // "website" => 13,
-                          // "special_conditions_code" => 15,
-                        ];
+        ];
+
+
+        if (array_reduce(['2016-09','2016-10','2016-11','2016-12','2017','2018'], fn($carry, $needle) => $carry || str_contains($this->file_date, $needle), false)) {
+            $this->mapping = [
+                          "name" => 0,
+                          "suite" => 1,
+                          "po_box" => 2,
+                          "address_line_1" => 3,
+                          "address_line_2" => 4,
+                          "address_line_3" => 6,
+                          "telephone" => 7,
+                          "fax" => 8,
+                          "region" => 9,
+                          "number" => 10,
+                          "principal_name" => 11,
+                          "level" => 12,
+                          "special_conditions_code" => 13,
+                          "ossd_credits_offered" => 14,
+                          // "type" => 15,
+                          "association_membership" => 16,
+            ];
+        }
+
+
+
+        // if(str_contains($this->file_date, ['2016-09','2016-10','2016-11','2016-12','2017','2018']))
+        //     $this->mapping = [
+        //                   "name" => 0,
+        //                   "suite" => 1,
+        //                   "po_box" => 2,
+        //                   "address_line_1" => 3,
+        //                   "address_line_2" => 4,
+        //                   "address_line_3" => 6,
+        //                   "telephone" => 7,
+        //                   "fax" => 8,
+        //                   "region" => 9,
+        //                   "number" => 10,
+        //                   "principal_name" => 11,
+        //                   "level" => 12,
+        //                   "special_conditions_code" => 13,
+        //                   "ossd_credits_offered" => 14,
+        //                   "type" => 15,
+        //                   "association_membership" => 16,
+        //     ];
+
+
+
+        if(str_contains($this->file_date, '2019-'))
+            $this->mapping = [
+                          "name" => 0,
+                          "suite" => 1,
+                          "po_box" => 2,
+                          "address_line_1" => 3,
+                          "address_line_2" => 4,
+                          "address_line_3" => 6,
+                          "telephone" => 7,
+                          "fax" => 8,
+                          "region" => 9,
+                          "number" => 10,
+                          "website" => 11,
+                          "level" => 12,
+                          "special_conditions_code" => 13,
+                          "ossd_credits_offered" => 14,
+                          // "type" => 15,
+                          "association_membership" => 16,
+            ];
+
+
+        if($this->file_date == '2019-12-01')
+            $this->mapping = [
+                          "name" => 0,
+                          "suite" => 1,
+                          "po_box" => 2,
+                          "address_line_1" => 3,
+                          "address_line_2" => 4,
+                          "address_line_3" => 6,
+                          "telephone" => 7,
+                          "fax" => 8,
+                          "region" => 9,
+                          "number" => 10,
+                          "website" => 11,
+                          "principal_name" => 12,
+                          "level" => 13,
+                          "special_conditions_code" => 14,
+                          "ossd_credits_offered" => 15,
+                          // "type" => 16,
+                          "association_membership" => 17,
+            ];
+
+
+
+
+
+        if (array_reduce(['2020-', '2021-', '2022-'], fn($carry, $needle) => $carry || str_contains($this->file_date, $needle), false)) {
+            $this->mapping = [
+                          "name" => 0,
+                          "number" => 1,
+                          "ossd_credits_offered" => 2,
+                          "principal_name" => 3,
+                          "suite" => 4,
+                          "po_box" => 5,
+                          "address_line_1" => 6,
+                          "address_line_2" => 7,
+                          "address_line_3" => 9,
+                          "telephone" => 10,
+                          "fax" => 11,
+                          "region" => 12,
+                          "website" => 13,
+                          "level" => 14,
+                          "special_conditions_code" => 15,
+                          // "type" => 16,
+                          "association_membership" => 17,
+            ];
+        }
+
+
+            // dd($this->mapping);
     }
 
     public function startRow(): int
@@ -57,9 +174,6 @@ class TempSchoolsExcelMapperImport implements ToModel, WithStartRow
     // TODO convert to MAP since we don't need models anymore.
     public function model(array $row)
     {
-        // dd($this->file_date);
-
-        // dd($row);
 
         $array = [];
 
@@ -96,7 +210,6 @@ class TempSchoolsExcelMapperImport implements ToModel, WithStartRow
         $school = School::where('number', $array['number'])->first();
         if(!$school)
             return;
-
 
 
         $record = App::make(OntarioSchoolRecord::class);

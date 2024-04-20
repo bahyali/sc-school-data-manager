@@ -245,7 +245,8 @@ class SchoolRecord implements ISchoolRecord
                 Log::create([
                     'revision_id' => $revision_model->id,
                     'effect' => 'change',
-                    'resource' => $data_source->configuration['file_name']
+                    'resource' => $data_source->configuration['file_name'],
+                    'school_id' => $this->school->id
                 ]);
             }
         }
@@ -256,7 +257,8 @@ class SchoolRecord implements ISchoolRecord
             Log::create([
                 'revision_id' => $revision_model->id,
                 'effect' => 'added',
-                'resource' => $data_source->configuration['file_name']
+                'resource' => $data_source->configuration['file_name'],
+                'school_id' => $this->school->id
             ]);
         }
 

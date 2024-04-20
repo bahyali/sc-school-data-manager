@@ -103,6 +103,7 @@ Route::post('/importing-old-files', [App\Http\Controllers\OntarioOldFilesImporte
 
 
 
+Route::get('/ontario/frontend/all/{school_id?}', [App\Http\Controllers\API\DataSourceController::class, 'getOntarioLogs']);
 
 
 

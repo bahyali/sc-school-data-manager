@@ -9,7 +9,7 @@ class Log extends Model
 {
     use HasFactory;
     protected $guarded = ['id'];
-    protected $hidden = ['revision'];
+    // protected $hidden = ['revision'];
 
 
     public function revision()
@@ -22,6 +22,13 @@ class Log extends Model
     public function getRevision()
     {
         return $this->belongsTo(SchoolRevision::class, 'revision_id');
+    }
+
+
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
     }
 
 }
