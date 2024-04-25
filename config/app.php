@@ -236,6 +236,7 @@ return [
     'all_columns' => [
         "bsid" => "number",
         "school_number" => "number",
+        "bsid_school_number" => "number",
         "school_name" => "name",
         "school_type" => "type",
         "school_level" => "level",
@@ -243,24 +244,52 @@ return [
         "semester_type" => "semester_type",
         "language_of_instruction" => "language_of_instruction",
         "total_teachers" => "teachers_num",
+        "total_oct_teachers" => "oct_teachers",
         "teachers_with_oct" => "oct_teachers",
+
         "enrolment_2020_2021" => "enrollment",
         "enrolment_2021_2022" => "enrollment_21_22",
         "enrolment" => "enrollment",
+        "student_enrolment" => "enrollment",
+        "student_enrollment_2020_2021" => "enrollment",
+        "student_enrollment_2021_2022" => "enrollment_21_22",
+        "student_enrollment_2022_2023" => "enrollment_22_23",
+
+
+
         "ossd_continuous_intake" => "ossd_continuous_intake",
         "ossd_credits_offered" => "ossd_credits_offered",
         "date_of_last_noi_submission" => "noi_last_date_submission",
         "noi_status_description" => "noi_status_description",
+
         "date_open" => "open_date",
+        "open_date" => "open_date",
+        "opened_date" => "open_date",
+
         "date_closed" => "closed_date",
+        "closed_date" => "closed_date",
+        "close_date" => "closed_date",
+
         "date_revoked" => "revoked_date",
+        "revoked_date" => "revoked_date",
+        "revoke_date" => "revoked_date",
+
         "school_status" => "status",
         "status" => "status",
+        "status_open" => "status_open",
+        "status_closed" => "status_closed",
+        "status_revoked" => "status_revoked",
+
+
+
         "corporation_name" => "corporation_name",
         "corporation_establish_date" => "corporation_establish_date",
         "corporation_contact_name" => "corporation_contact_name",
+        
         "ownership_type" => "ownership_type",
         "cra_bn" => "cra_bn",
+        "owner_cra_bn" => "cra_bn",
+
         "diploma_2014_2015" => "diploma_2014_2015",
         "diploma_2015_2016" => "diploma_2015_2016",
         "diploma_2016_2017" => "diploma_2016_2017",
@@ -269,6 +298,8 @@ return [
         "diploma_2019_2020" => "diploma_2019_2020",
         "diploma_2020_2021" => "diploma_2020_2021",
         "diploma_2021_2022" => "diploma_2021_2022",
+
+
         "po_box" => "po_box",
         "suite" => "suite",
         "street" => "street",
@@ -281,13 +312,27 @@ return [
         "fax" => "fax",
         "school_website" => "website",
         "website" => "website",
-        "closed_date" => "closed_date",
+
+
+        //principals
+
         "principal_name" => "principal_name",
         "principal_first_name" => "principal_name",
         "principal_last_name" => "principal_last_name",
+        "principa_last_name" => "principal_last_name",
+
         "principal_qualification" => "principal_qualification",
+        "principal_qulification" => "principal_qualification",
+
         "principal_qualification_other" => "principal_qualification_other",
+        "principal_qulification_other" => "principal_qualification_other",
+
         "principal_start_date" => "principal_start_date",
+        "assignment_start_date" => "principal_start_date",
+
+
+        //affiliations and associations
+
         "affiliation" => "affiliation",
         "affiliations" => "affiliation",
         "association" => "association_membership",

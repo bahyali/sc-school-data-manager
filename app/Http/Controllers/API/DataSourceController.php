@@ -195,13 +195,14 @@ class DataSourceController extends Controller
                 // 'id' => $log->id,
                 'effect' => $log->effect,
                 // 'status' => $log->resource,
-                'date' => $this->extractYearMonth($log->resource),
+                'date' => $this->extractYearMonth($log),
                 'differences' => $differences,
                 'school_name' => $school->name,
                 'number' => $school->number,
                 'ossd' => $log_revision->ossd_credits_offered,
                 'program_type' => $log_revision->program_type,
-                'year' => $this->extractYearMonth($log->resource, true),
+                'year' => $this->extractYearMonth($log, true),
+                'id' => $log->id,
             ];
 
             $arr[] = $modified;
@@ -213,13 +214,13 @@ class DataSourceController extends Controller
 
 
 
-    public function extractYearMonth($filename, $year_only = false)
+    public function extractYearMonth($log, $year_only = false)
     {
         $matches = [];
         $matches_two = [];
-        preg_match('/_(january|february|march|april|may|june|july|august|september|october|november|december|\d{2})(\d{4})_/i', $filename, $matches);
+        preg_match('/_(january|february|march|april|may|june|july|august|september|october|november|december|\d{2})(\d{4})_/i', $log->resource, $matches);
 
-        preg_match('/_(january|february|march|april|may|june|july|august|september|october|november|december|\d{1,2})_(\d{4})_/i', $filename, $matches_two);
+        preg_match('/_(january|february|march|april|may|june|july|august|september|october|november|december|\d{1,2})_(\d{4})_/i', $log->resource, $matches_two);
 
 
         if (count($matches) === 3) {
@@ -243,8 +244,9 @@ class DataSourceController extends Controller
             return ($year_only) ? $year : $year . '-' . $month ;
 
         }
-
-        return null; // change it to be with created_at field
+        
+        //in case can not match
+        return ($year_only) ? $log->created_at->format('Y') : $log->created_at->format('Y-m'); 
     }
 
 

@@ -15,6 +15,9 @@ use App\Classes\SchoolRecord;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 
+use Illuminate\Support\Facades\DB;
+
+
 
 class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithHeadingRow, SkipsEmptyRows
 {
@@ -42,14 +45,27 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
     {
 
         
-        $sorted_by_col = (isset($row[0]['school_number'])) ? 'school_number' : 'bsid'  ;
+        // $sorted_by_col = (isset($row[0]['school_number'])) ? 'school_number' : (isset($row[0]['bsid_school_number'])) ? 'bsid_school_number' : 'bsid'  ;
+
+
+        $sorted_by_col = (isset($rows[0]['school_number'])) ? 'school_number' :
+               ((isset($rows[0]['bsid_school_number'])) ? 'bsid_school_number' : 'bsid');
+
+
+
         
-        $rows = $rows->sortBy($sorted_by_col);//to sort by BSID
-        //to handle redundancy cames from multi-sheets 
+        // dd($rows[0]);
+
+        //to handle redundancy came from multi-sheets 
+        // $rows = $rows->sortBy($sorted_by_col);//to sort by BSID
 
         $last_row = count($rows);
         $current_row = 1;
         $previous_row = 0;
+
+
+
+        DB::beginTransaction();
 
         foreach ($rows as $row)
         {
@@ -60,7 +76,7 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
 
             //check if current-row still equal the previous row BSID and merge them in one row
             // elseif($previous_row[0] == $row[0])
-            elseif( isset($row['bsid']) && $row['bsid'] == $previous_row['bsid'] || isset($row['school_number']) && $row['school_number'] == $previous_row['school_number'] ) 
+            elseif( isset($row['bsid']) && $row['bsid'] == $previous_row['bsid'] || isset($row['school_number']) && $row['school_number'] == $previous_row['school_number'] || isset($row['bsid_school_number']) && $row['bsid_school_number'] == $previous_row['bsid_school_number'] ) 
             {
 
                 //merging
@@ -82,6 +98,9 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
             $current_row++;
 
         }
+
+        DB::commit();
+
 
     }
 
@@ -111,10 +130,18 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
             foreach ($this->configuration['overrides'] as $key => $value)
                 $array[$key] = $value;
 
-
+        //to skip if there is NO bsid
         if (!isset($array['number']) || $array['number'] == null || !is_numeric($array['number']))
             return;
         
+
+        //sometimes sheets does not contain status column directly it contains columns like(status_closed, status_open) with yes or no values
+        $array['status'] = $this->finalCheckForStatus($array);
+
+
+        //to skip if there is NO status
+        if(!in_array($array['status'], ['active', 'revoked', 'closed'])) return;
+
 
         $record = App::make(SchoolRecord::class);
         $school = $record->addSchool($array['number']);
@@ -123,16 +150,37 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
 
 
         $school->addRevision($array, $this->data_source);
+        // dd($array);
     }
+
+    // private function transformDate($value, $format = 'Y-m-d')
+    // {
+    //     try {
+    //         return \Carbon\Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value));
+    //     } catch (\ErrorException $e) {
+    //         return \Carbon\Carbon::createFromFormat($format, $value);
+    //     }
+    // }
+
+
 
     private function transformDate($value, $format = 'Y-m-d')
     {
-        try {
-            return \Carbon\Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value));
-        } catch (\ErrorException $e) {
-            return \Carbon\Carbon::createFromFormat($format, $value);
+        if (is_numeric($value)) {
+            try {
+                return \Carbon\Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value));
+            } catch (\Exception $e) {
+                return null;
+            }
+        } else {
+            try {
+                return \Carbon\Carbon::createFromFormat($format, $value);
+            } catch (\Exception $e) {
+                return null;
+            }
         }
     }
+
 
 
 
@@ -145,6 +193,19 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
         $status = array_intersect($statuses, $exploded_status_string);
 
         return array_key_first($status);
+    }
+
+
+
+    private function finalCheckForStatus($array)
+    {
+
+        if(isset($array['status'])) return $array['status'];
+        if(isset($array['status_open']) && strtolower($array['status_open']) == 'yes') return 'active';
+        if(isset($array['status_closed']) && strtolower($array['status_closed']) == 'yes') return 'closed';
+        if(isset($array['status_revoked']) && strtolower($array['status_revoked']) == 'yes') return 'revoked';
+
+        return null;
     }
 }
 

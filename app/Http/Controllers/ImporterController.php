@@ -39,7 +39,9 @@ class ImporterController extends Controller
 
 	public function importFromExcel($data_source, $file)
 	{
-		ini_set('max_execution_time', 1800); //10 minutes
+		ini_set('max_execution_time', 10000); //10 minutes
+		ini_set('memory_limit', '1024M'); // Set memory limit to 1 GB
+
 		// Force excel to take only first sheet temporarily.
 		// TODO Handle multiple sheet definitions
 
