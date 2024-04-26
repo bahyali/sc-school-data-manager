@@ -298,6 +298,7 @@ return [
         "diploma_2019_2020" => "diploma_2019_2020",
         "diploma_2020_2021" => "diploma_2020_2021",
         "diploma_2021_2022" => "diploma_2021_2022",
+        "diploma_2022_2023" => "diploma_2022_2023",
 
 
         "po_box" => "po_box",
