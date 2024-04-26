@@ -32,21 +32,55 @@ class SchoolRecord implements ISchoolRecord
         return $this;
     }
 
-    public function addRevision($revision, $data_source, $remix = false, $associate = false, $check_conflict = false, $check_status = false, $fill_dates = false)
+    public function addRevision($revision, $data_source, $remix = true, $associate = false, $check_conflict = true, $check_status = false, $fill_dates = false)
     {
         if (!$this->school)
             throw new Exception("We need a school to create a revision!");
 
+        $revision['data_source_id'] = $data_source->id;
 
-        if($revision['diploma_2022_2023']){
-            $rev = SchoolRevision::find($this->school->revision_id);
-            $rev->diploma_2022_2023 = $revision['diploma_2022_2023'];
-            $rev->save();
-            $this->school->touch();
+        //to check if school can have Revoked + Closed statuses at the same time
+        if($check_status){
+            // if( isset($revision['status'])) $revision['status'] = $this->checkStatus($revision['status']);
+            if( isset($revision['status']) && $this->school->lastRevision()->first()) $revision['status'] = $this->checkStatusForMixingRevision($revision['status']);
+        }
+        
+        // Sort array to standardize fingerprint
+        ksort($revision);
+
+        $hash = md5(serialize($revision));
+
+
+        //to store Ministry datafile changes every month 
+        if($data_source->name == 'active_schools' && $data_source['configuration']['file_name']){
+            $revision_model = $this->updateOntarioLogs($data_source, $hash, $revision);
         }
 
-        return $this;
+        else $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
 
+        $revision_model->touch();
+        // dd($revision_model);
+
+        if ($associate) {
+            $this->school->lastRevision()->associate($revision_model);
+            $this->school->status = $revision['status'];
+            $this->school->save();
+        }
+
+
+        if ($check_conflict && $this->school->lastRevision()->first())
+            $this->checkConflict($revision_model, $this->school->lastRevision()->first());
+        
+
+        if ($remix)
+            $this->remix();
+
+
+        if ($fill_dates && $revision['status'] != 'active' && $this->school->lastRevision()->first())
+            $this->fillDates($revision_model);
+
+
+        return $this;
     }
 
     public function fetchSchool($id)

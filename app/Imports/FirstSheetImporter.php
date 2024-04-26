@@ -24,8 +24,8 @@ class FirstSheetImporter implements WithMultipleSheets
             return [
                 // new SchoolsExcelMapperImportMulti($this->data_source);
                 'School Details' => new SchoolsExcelMapperImportMulti($this->data_source),
-                // 'Principal' => new SchoolsExcelMapperImportMulti($this->data_source),
-                // 'Affiliation' => new SchoolsExcelMapperImportMulti($this->data_source),
+                'Principal' => new SchoolsExcelMapperImportMulti($this->data_source),
+                'Affiliation' => new SchoolsExcelMapperImportMulti($this->data_source),
                 // 'Association' => new SchoolsExcelMapperImportMulti($this->data_source),
                 // 'Address' => new SchoolsExcelMapperImportMulti($this->data_source),
                 // 'Principal' => new SchoolsPrincipalExcelMapper($this->data_source),
