@@ -167,7 +167,7 @@ class DataSourceController extends Controller
                     ->latest()
                     ->first();
 
-                $excluded_keys = ['id', 'created_at', 'updated_at', 'hash', 'school', 'ossd_credits_offered', 'address_line_3'];
+                $excluded_keys = ['id', 'created_at', 'updated_at', 'hash', 'school', 'ossd_credits_offered', 'address_line_3', 'Suite'];
                 
                 foreach (collect($log_revision) as $key => $value) {
                     if (!in_array($key, $excluded_keys) && $value != $the_revision_before[$key]) {
