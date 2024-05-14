@@ -171,8 +171,8 @@ class DataSourceController extends Controller
                 
                 
                 foreach (collect($log_revision) as $key => $value) {
-                    if (!in_array($key, $excluded_keys) && $value != $the_revision_before[$key]) {
-                    // if (!in_array($key, $excluded_keys) && $value != $the_revision_before[$key] && $value !== null && $the_revision_before[$key] !== null) {    
+                    // if (!in_array($key, $excluded_keys) && $value != $the_revision_before[$key]) {
+                    if (!in_array($key, $excluded_keys) && $value != $the_revision_before[$key] && $value !== null && $the_revision_before[$key] !== null) {    
 
                         // Normalize both current and previous values for comparison
                         $normalized_current_value = $this->normalize($value);
