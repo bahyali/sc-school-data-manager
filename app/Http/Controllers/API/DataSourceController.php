@@ -140,15 +140,6 @@ class DataSourceController extends Controller
         ini_set('max_execution_time', 300);
 
         $arr = [];
-        // $logs = Log::with('revision.school')->get();
-
-
-        // foreach ($logs as $log) {
-        //     return $log->revision->name;
-        // }
-
-
-
 
         // $logs = Log::with(['revision', 'school'])->limit(10)->latest()->get();
         if($school_id) $logs = Log::with(['revision', 'school'])->where('school_id', $school_id)->get();
@@ -161,30 +152,40 @@ class DataSourceController extends Controller
             
             if($log->effect == 'change'){
 
-                $the_revision_before = SchoolRevision::where('school_id', $school->id)
+                $the_revisions_before = SchoolRevision::where('school_id', $school->id)
                     ->where('data_source_id', $log_revision->data_source_id)
                     ->where('created_at', '<', $log_revision->created_at)
                     ->latest()
-                    ->first();
+                    ->limit(10)
+                    ->get();
 
                 $excluded_keys = ['id', 'created_at', 'updated_at', 'hash', 'school', 'ossd_credits_offered', 'address_line_3', 'suite'];
                 
-                
+
                 foreach (collect($log_revision) as $key => $value) {
-                    // if (!in_array($key, $excluded_keys) && $value != $the_revision_before[$key]) {
-                    if (!in_array($key, $excluded_keys) && $value != $the_revision_before[$key] && $value !== null && $the_revision_before[$key] !== null) {    
 
-                        // Normalize both current and previous values for comparison
-                        $normalized_current_value = $this->normalize($value);
-                        $normalized_before_value = $this->normalize($the_revision_before[$key]);
+                    if (!in_array($key, $excluded_keys) && $value != $the_revisions_before[0][$key] && $value !== null) {
+
+                        foreach ($the_revisions_before as $revision) {
+                        
+                            if($revision[$key] !== null) {
+
+                                // Normalize both current and previous values for comparison
+                                $normalized_current_value = $this->normalize($value);
+                                $normalized_before_value = $this->normalize($revision[$key]);
 
 
-                        if ($normalized_current_value !== $normalized_before_value) {
-                            $differences[$key] = [
-                                'before' => $the_revision_before[$key],
-                                'after' => $value,
-                            ];
+                                if ($normalized_current_value !== $normalized_before_value) {
+                                    $differences[$key] = [
+                                        'before' => $revision[$key],
+                                        'after' => $value,
+                                    ];
+                                }
+                                // kill the loop
+                                break;
+                            }
                         }
+
                     }
                 }
 
