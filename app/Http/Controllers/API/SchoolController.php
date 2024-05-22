@@ -50,8 +50,8 @@ class SchoolController extends Controller
 
 	public function getSchoolByDate(Request $request)
 	{
-		// $date = $request->date ? Carbon::parse($request->date) : Carbon::parse('1990-04-14');
-		$date = Carbon::parse('2024-05-18 15:18:11');
+		$date = $request->date ? Carbon::parse($request->date) : Carbon::parse('1990-04-14');
+		// $date = Carbon::parse('2024-05-18 15:18:11');
 
 		$mixer_source = DataSource::where('name', 'schoolcred_engine')
 			->first();
@@ -65,8 +65,8 @@ class SchoolController extends Controller
 			// ->take(1);
 		}])
 			->where('updated_at', '>=', $date)
-			->skip(0)
-			->take(100)
+			// ->skip(0)
+			// ->take(100)
 			// ->limit(200)
 			->get();
 	}
