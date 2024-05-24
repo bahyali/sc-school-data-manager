@@ -384,7 +384,7 @@ class ImporterController extends Controller
 		$schools = School::where('created_at', '>', $startDate)->get();
 
 		foreach ($schools as $school) {
-			$dates[] = $school->last_revision->open_date;
+			return $school->last_revision;
 		}
 		
         return $dates;
