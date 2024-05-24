@@ -4,9 +4,10 @@ namespace App\Classes;
 
 use App\Models\School;
 use App\Models\DataSource;
-
 use Exception;
 use Illuminate\Support\Collection;
+use Carbon\Carbon;
+
 
 class DataMixer
 {
@@ -63,6 +64,12 @@ class DataMixer
             //to modify OSSD if school type is private inspected
             if(isset($remix['type']) && strtolower($remix['type']) == 'private inspected'){
                 $remix['ossd_credits_offered'] = 'yes'; 
+            }
+
+
+            //to ensure that open_date field in not empty in case status is active
+            if(isset($remix['status']) && strtolower($remix['status']) == 'active' && !isset($remix['open_date']) ){
+                $remix['open_date'] = Carbon::now()->startOfMonth()->format('Y-m-d H:i:s');
             }
             
             $school_record->addRevision($remix->toArray(), $this->data_source, false, true, false, true);

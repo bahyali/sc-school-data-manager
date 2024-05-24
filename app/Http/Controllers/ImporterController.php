@@ -301,26 +301,26 @@ class ImporterController extends Controller
 
 	public function testRecord(){
 
-		// [44,45,46,47];
+		// return 'asdasd';
 		$record = App::make(SchoolRecord::class);
 		$data_source = DataSource::find(1);
         $array['data_source_id'] = $data_source->id;
-        $array['status'] = 'closed';
-        $array['name'] = 'lalalall';
-        $array['number'] = '123456';
-        $array['principal_name'] = 'lalalall';
+        $array['status'] = 'active';
+        $array['name'] = 'testdummmmmmmmy';
+        $array['number'] = '1234545454556';
+        $array['principal_name'] = 'testdummmmmmmmy';
         $array['special_conditions_code'] = 'true';
-        $array['address_line_1'] = 'lalalall';
-        $array['address_line_2'] = 'lalalall';
+        $array['address_line_1'] = 'testdummmmmmmmy';
+        $array['address_line_2'] = 'testdummmmmmmmy';
         $array['address_line_3'] = '555555555555555555';
         $array['country'] = '555555555555555555';
         $array['telephone'] = '555555555555555555';
         // $array['teachers_num'] = 20;
         // $array['oct_teachers'] = 11;
-        $array['fax'] = 'closed';
+        $array['fax'] = '125885555';
 
         $school = $record->addSchool($array['number']);
-        $school->addRevision($array, $data_source, false, false, false, false, true);
+        $school->addRevision($array, $data_source, true, false, false, false, false);
         return'done';
 	}
 
