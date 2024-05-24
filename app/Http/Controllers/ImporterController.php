@@ -374,24 +374,4 @@ class ImporterController extends Controller
 // 	}
 
 
-
-
-	public function maintainOpenDate(){
-
-		$startDate = Carbon::create(2024, 1, 1, 0, 0, 0);
-
-		$dates = [];
-		$schools = School::where('created_at', '>', $startDate)->get();
-
-		foreach ($schools as $school) {
-			if(!$school->lastRevision->open_date)
-				$dates[] = 'yes';
-			else
-				$dates[] = 'no';
-		}
-		
-        return $dates;
-	}
-
-
 }
