@@ -299,30 +299,30 @@ class ImporterController extends Controller
 
 
 
-	public function testRecord(){
+	// public function testRecord(){
 
-		// return 'asdasd';
-		$record = App::make(SchoolRecord::class);
-		$data_source = DataSource::find(1);
-        $array['data_source_id'] = $data_source->id;
-        $array['status'] = 'active';
-        $array['name'] = 'testdummmmmmmmy';
-        $array['number'] = 1234545454556;
-        $array['principal_name'] = 'new';
-        $array['special_conditions_code'] = 'true';
-        $array['address_line_1'] = 'new';
-        $array['address_line_2'] = 'new';
-        $array['address_line_3'] = '52';
-        $array['country'] = '54';
-        $array['telephone'] = '52';
-        $array['teachers_num'] = 20;
-        $array['oct_teachers'] = 11;
-        $array['fax'] = '123';
+	// 	// return 'asdasd';
+	// 	$record = App::make(SchoolRecord::class);
+	// 	$data_source = DataSource::find(1);
+    //     $array['data_source_id'] = $data_source->id;
+    //     $array['status'] = 'active';
+    //     $array['name'] = 'testdummmmmmmmy';
+    //     $array['number'] = '1994419';
+    //     $array['principal_name'] = 'newwasdadasdwwww';
+    //     $array['special_conditions_code'] = 'true';
+    //     $array['address_line_1'] = 'newasdasdasdasdasdasdwwww';
+    //     $array['address_line_2'] = 'new';
+    //     $array['address_line_3'] = '52';
+    //     $array['country'] = '54';
+    //     $array['telephone'] = '52';
+    //     $array['teachers_num'] = 20;
+    //     $array['oct_teachers'] = 11;
+    //     $array['fax'] = '123';
 
-        $school = $record->addSchool($array['number']);
-        $school->addRevision($array, $data_source, true, false, false, false, false);
-        return'done';
-	}
+    //     $school = $record->addSchool($array['number']);
+    //     $school->addRevision($array, $data_source, true, false, false, false, false);
+    //     return'done';
+	// }
 
 
 

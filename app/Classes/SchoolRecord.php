@@ -52,11 +52,11 @@ class SchoolRecord implements ISchoolRecord
 
 
         //to store Ministry datafile changes every month 
-        // if($data_source->name == 'active_schools' && $data_source['configuration']['file_name']){
-        //     $revision_model = $this->updateOntarioLogs($data_source, $hash, $revision);
-        // }
+        if($data_source->name == 'active_schools' && $data_source['configuration']['file_name']){
+            $revision_model = $this->updateOntarioLogs($data_source, $hash, $revision);
+        }
 
-        $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
+        else $revision_model = $this->school->revisions()->firstOrCreate(['hash' => $hash], $revision);
 
         $revision_model->touch();
         // dd($revision_model);

@@ -69,10 +69,7 @@ class DataMixer
 
             //to ensure that open_date field in not empty in case status is active
             if(isset($remix['status']) && strtolower($remix['status']) == 'active' && !isset($remix['open_date']) ){
-                // $remix['open_date'] = Carbon::now()->startOfMonth()->format('Y-m-d H:i:s');
-                $remix['open_date'] = Carbon::createFromFormat('Y-m-d', '2024-04-19')->startOfDay()->format('Y-m-d H:i:s');
-
-
+                $remix['open_date'] = Carbon::now()->startOfMonth()->format('Y-m-d H:i:s');
             }
             
             $school_record->addRevision($remix->toArray(), $this->data_source, false, true, false, true);
