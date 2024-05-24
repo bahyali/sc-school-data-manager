@@ -307,17 +307,17 @@ class ImporterController extends Controller
         $array['data_source_id'] = $data_source->id;
         $array['status'] = 'active';
         $array['name'] = 'testdummmmmmmmy';
-        $array['number'] = '1234545454556';
-        $array['principal_name'] = 'testdummmmmmmmy';
+        $array['number'] = 1234545454556;
+        $array['principal_name'] = 'new';
         $array['special_conditions_code'] = 'true';
-        $array['address_line_1'] = 'testdummmmmmmmy';
-        $array['address_line_2'] = 'testdummmmmmmmy';
-        $array['address_line_3'] = '555555555555555555';
-        $array['country'] = '555555555555555555';
-        $array['telephone'] = '555555555555555555';
-        // $array['teachers_num'] = 20;
-        // $array['oct_teachers'] = 11;
-        $array['fax'] = '125885555';
+        $array['address_line_1'] = 'new';
+        $array['address_line_2'] = 'new';
+        $array['address_line_3'] = '52';
+        $array['country'] = '54';
+        $array['telephone'] = '52';
+        $array['teachers_num'] = 20;
+        $array['oct_teachers'] = 11;
+        $array['fax'] = '123';
 
         $school = $record->addSchool($array['number']);
         $school->addRevision($array, $data_source, true, false, false, false, false);
