@@ -381,6 +381,7 @@ class ImporterController extends Controller
 
 	public function maintainOpenDate(){
 
+		return 'asdas';
 		$startDate = Carbon::create(2024, 1, 1, 0, 0, 0);
 		return $schools = School::where('created_at', '>', $startDate)->get();
 		
