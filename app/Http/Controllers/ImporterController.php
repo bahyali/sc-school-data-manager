@@ -381,13 +381,13 @@ class ImporterController extends Controller
 		$startDate = Carbon::create(2024, 1, 1, 0, 0, 0);
 
 		$dates = [];
-		return $schools = School::where('created_at', '>', $startDate)->get();
+		$schools = School::where('created_at', '>', $startDate)->get();
 
 		foreach ($schools as $school) {
 			$dates[] = $school->last_revision->open_date;
 		}
 		
-        return'done';
+        return $dates;
 	}
 
 
