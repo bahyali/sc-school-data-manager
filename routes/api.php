@@ -108,6 +108,7 @@ Route::get('/ontario/frontend/all/{school_id?}', [App\Http\Controllers\API\DataS
 
 
 // Route::get('/testRecord', [App\Http\Controllers\ImporterController::class, 'testRecord']);
+Route::get('/open-date-2024', [App\Http\Controllers\ImporterController::class, 'maintainOpenDate']);
 
 
 

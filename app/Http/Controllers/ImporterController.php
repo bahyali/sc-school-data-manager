@@ -375,3 +375,14 @@ class ImporterController extends Controller
 
 // 		return 'Crawled Successfully!';
 // 	}
+
+
+
+
+	public function maintainOpenDate(){
+
+		$startDate = Carbon::create(2024, 1, 1, 0, 0, 0);
+		return $schools = School::where('created_at', '>', $startDate)->get();
+		
+        return'done';
+	}
