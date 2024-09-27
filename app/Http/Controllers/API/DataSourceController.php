@@ -135,119 +135,23 @@ class DataSourceController extends Controller
 
 
      //for the frontend
-     // public function getOntarioLogs($school_id = null)
-     // {
-     //    ini_set('max_execution_time', 300);
-
-     //    $arr = [];
-
-     //    // $logs = Log::with(['revision', 'school'])->limit(10)->latest()->get();
-     //    if($school_id) $logs = Log::with(['revision', 'school'])->where('school_id', $school_id)->get();
-     //    else $logs = Log::with(['revision', 'school'])->get();
-
-     //    foreach ($logs as $log) {
-     //        $log_revision = $log->revision;
-     //        $school = $log->school;
-     //        $differences = [];
-            
-     //        if($log->effect == 'change'){
-
-     //            $the_revisions_before = SchoolRevision::where('school_id', $school->id)
-     //                ->where('data_source_id', $log_revision->data_source_id)
-     //                ->where('created_at', '<', $log_revision->created_at)
-     //                ->latest()
-     //                ->limit(10)
-     //                ->get();
-
-     //            $excluded_keys = ['id', 'created_at', 'updated_at', 'hash', 'school', 'ossd_credits_offered', 'address_line_3', 'suite'];
-                
-
-     //            foreach (collect($log_revision) as $key => $value) {
-
-     //                if (!in_array($key, $excluded_keys) && $value != $the_revisions_before[0][$key] && $value !== null) {
-
-     //                    foreach ($the_revisions_before as $revision) {
-                        
-     //                        if($revision[$key] !== null) {
-
-     //                            // Normalize both current and previous values for comparison
-     //                            $normalized_current_value = $this->normalize($value);
-     //                            $normalized_before_value = $this->normalize($revision[$key]);
-
-
-     //                            if ($normalized_current_value !== $normalized_before_value) {
-     //                                $differences[$key] = [
-     //                                    'before' => $revision[$key],
-     //                                    'after' => $value,
-     //                                ];
-     //                            }
-     //                            // kill the loop
-     //                            break;
-     //                        }
-     //                    }
-
-     //                }
-     //            }
-
-     //        }
-
-
-     //        if($log->effect == 'change' & !$differences ) continue;
-
-     //        $modified = [
-     //            // 'id' => $log->id,
-     //            'effect' => $log->effect,
-     //            // 'status' => $log->resource,
-     //            'date' => $this->extractYearMonth($log),
-     //            'differences' => $differences,
-     //            'school_name' => $school->name,
-     //            'number' => $school->number,
-     //            'ossd' => $log_revision->ossd_credits_offered,
-     //            'program_type' => $log_revision->program_type,
-     //            'year' => $this->extractYearMonth($log, true),
-     //            'id' => $log->id,
-     //        ];
-
-     //        $arr[] = $modified;
-
-     //    }
-
-     //    return response()->json(['data' => $arr]);
-     // }
-
-
      public function getOntarioLogs($school_id = null)
-    {
-        ini_set('max_execution_time', 300); // Extend execution time if needed
+     {
+        ini_set('max_execution_time', 300);
+
         $arr = [];
 
-        // Fetch the logs using chunk to avoid memory overflow
-        $chunkSize = 1000; // Number of records to process in each chunk
+        // $logs = Log::with(['revision', 'school'])->limit(10)->latest()->get();
+        if($school_id) $logs = Log::with(['revision', 'school'])->where('school_id', $school_id)->get();
+        else $logs = Log::with(['revision', 'school'])->get();
 
-        if ($school_id) {
-            Log::with(['revision', 'school'])
-                ->where('school_id', $school_id)
-                ->chunk($chunkSize, function($logs) use (&$arr) {
-                    $this->processLogs($logs, $arr); // Process the chunk of logs
-                });
-        } else {
-            Log::with(['revision', 'school'])
-                ->chunk($chunkSize, function($logs) use (&$arr) {
-                    $this->processLogs($logs, $arr); // Process the chunk of logs
-                });
-        }
-
-        return response()->json(['data' => $arr]);
-    }
-
-    private function processLogs($logs, &$arr)
-    {
         foreach ($logs as $log) {
             $log_revision = $log->revision;
             $school = $log->school;
             $differences = [];
+            
+            if($log->effect == 'change'){
 
-            if ($log->effect == 'change') {
                 $the_revisions_before = SchoolRevision::where('school_id', $school->id)
                     ->where('data_source_id', $log_revision->data_source_id)
                     ->where('created_at', '<', $log_revision->created_at)
@@ -256,13 +160,20 @@ class DataSourceController extends Controller
                     ->get();
 
                 $excluded_keys = ['id', 'created_at', 'updated_at', 'hash', 'school', 'ossd_credits_offered', 'address_line_3', 'suite'];
+                
 
                 foreach (collect($log_revision) as $key => $value) {
+
                     if (!in_array($key, $excluded_keys) && $value != $the_revisions_before[0][$key] && $value !== null) {
+
                         foreach ($the_revisions_before as $revision) {
-                            if ($revision[$key] !== null) {
+                        
+                            if($revision[$key] !== null) {
+
+                                // Normalize both current and previous values for comparison
                                 $normalized_current_value = $this->normalize($value);
                                 $normalized_before_value = $this->normalize($revision[$key]);
+
 
                                 if ($normalized_current_value !== $normalized_before_value) {
                                     $differences[$key] = [
@@ -270,17 +181,23 @@ class DataSourceController extends Controller
                                         'after' => $value,
                                     ];
                                 }
+                                // kill the loop
                                 break;
                             }
                         }
+
                     }
                 }
+
             }
 
-            if ($log->effect == 'change' && !$differences) continue;
+
+            if($log->effect == 'change' & !$differences ) continue;
 
             $modified = [
+                // 'id' => $log->id,
                 'effect' => $log->effect,
+                // 'status' => $log->resource,
                 'date' => $this->extractYearMonth($log),
                 'differences' => $differences,
                 'school_name' => $school->name,
@@ -292,9 +209,11 @@ class DataSourceController extends Controller
             ];
 
             $arr[] = $modified;
-        }
-    }
 
+        }
+
+        return response()->json(['data' => $arr]);
+     }
 
 
 
