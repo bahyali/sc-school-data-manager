@@ -142,16 +142,8 @@ class DataSourceController extends Controller
         $arr = [];
 
         // $logs = Log::with(['revision', 'school'])->limit(10)->latest()->get();
-        // if($school_id) $logs = Log::with(['revision', 'school'])->where('school_id', $school_id)->get();
-        // else $logs = Log::with(['revision', 'school'])->get();
-
-
-        if ($school_id) {
-            $logs = Log::with(['revision', 'school'])->where('school_id', $school_id)->cursor();
-        } else {
-            $logs = Log::with(['revision', 'school'])->cursor();
-        }
-        
+        if($school_id) $logs = Log::with(['revision', 'school'])->where('school_id', $school_id)->get();
+        else $logs = Log::with(['revision', 'school'])->get();
 
         foreach ($logs as $log) {
             $log_revision = $log->revision;
