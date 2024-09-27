@@ -140,11 +140,34 @@ class DataSourceController extends Controller
         ini_set('max_execution_time', 300);
 
         $arr = [];
+        $chunkSize = 100;
 
         // $logs = Log::with(['revision', 'school'])->limit(10)->latest()->get();
-        if($school_id) $logs = Log::with(['revision', 'school'])->where('school_id', $school_id)->get();
-        else $logs = Log::with(['revision', 'school'])->get();
 
+        // if($school_id) $logs = Log::with(['revision', 'school'])->where('school_id', $school_id)->get();
+        // else $logs = Log::with(['revision', 'school'])->get();
+
+        if ($school_id) {
+            Log::with(['revision', 'school'])
+                ->where('school_id', $school_id)
+                ->chunk($chunkSize, function($logs) use (&$arr) {
+                    $this->processLogs($logs, $arr); // Process the chunk of logs
+                });
+        } else {
+            Log::with(['revision', 'school'])
+                ->chunk($chunkSize, function($logs) use (&$arr) {
+                    $this->processLogs($logs, $arr); // Process the chunk of logs
+                });
+        }
+
+        
+
+        return response()->json(['data' => $arr]);
+     }
+
+
+     private function processLogs($logs, &$arr)
+     {
         foreach ($logs as $log) {
             $log_revision = $log->revision;
             $school = $log->school;
@@ -211,8 +234,6 @@ class DataSourceController extends Controller
             $arr[] = $modified;
 
         }
-
-        return response()->json(['data' => $arr]);
      }
 
 
