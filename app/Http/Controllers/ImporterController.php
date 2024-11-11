@@ -148,6 +148,15 @@ class ImporterController extends Controller
 
 	public function ontarioImporting()
 	{
+
+
+		$schools = School::all();
+		foreach ($schools as $school) {
+			$rev = SchoolRevision::find($school->revision_id);
+			if(!$rev) return $school;
+		}
+
+		return'done';
 		$context = stream_context_create(
 		    array(
 		        "http" => array(
