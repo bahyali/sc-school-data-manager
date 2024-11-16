@@ -415,8 +415,10 @@ class SchoolController extends Controller
 
 
 
-	public function getChangedData($school_id, $column = null){
+	public function getChangedData($school_id, $column = null)
+	{
 
+		return 'asdasd';
 		$data_changes = DataChange::where('school_id', $school_id)->where('status', 'resolved_declare');
 		($column) ? $data_changes->where('column', $column) : '';
 		$data_changes = $data_changes->get();
