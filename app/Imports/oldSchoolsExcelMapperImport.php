@@ -10,18 +10,14 @@ use PhpOffice\PhpSpreadsheet\Cell\Cell;
 
 use Illuminate\Support\Facades\App;
 use App\Classes\SchoolRecord;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 
-class SchoolsExcelMapperImport implements ToModel, WithStartRow, WithHeadingRow
-
+class SchoolsExcelMapperImport implements ToModel, WithStartRow
 {
     use Importable;
 
     private $data_source;
     private $configuration;
-    private $headers = [];
-
 
     public function __construct($data_source)
     {
@@ -36,29 +32,9 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow, WithHeadingRow
     }
 
 
-    public function headingRow(): int
-    {
-        return 1; // The row containing column names
-    }
-
-
-
-    public function setHeaders(array $headers)
-    {
-        $this->headers = $headers;
-    }
-
-
-
     // TODO convert to MAP since we don't need models anymore.
     public function model(array $row)
     {
-
-        if (empty($this->headers)) {
-            $this->setHeaders(array_keys($row)); // Store headers only once
-        }
-
-        // Now $this->headers contains the headers for the entire file
 
         $array = [];
 
@@ -67,26 +43,21 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow, WithHeadingRow
             foreach ($this->configuration['overrides'] as $key => $value)
                 $array[$key] = $value;
 
-
         // Map
-        foreach( $row as $key => $value ){
-            if( !empty($key) && isset(config('app.all_columns')[$key]) ){ //To ignore empty columns
-                $array_key = config('app.all_columns')[$key];
-                $array_value = $value;
+        foreach ($this->configuration['mapping'] as $key => $value) {
+            $row_value = $row[$value];
 
-                if ($array_value && in_array($array_key, $this->configuration['date_columns'])) $array_value = $this->transformDate($value);
-
-                $array[$array_key] = $array_value;
+            // is it a date?
+            if ($row_value && in_array($key, $this->configuration['date_columns'])) {
+                $array[$key] = $this->transformDate($row_value);
+            } else {
+                $array[$key] = $row_value;
             }
         }
 
-        if (!isset($array['number']) || $array['number'] == null || !is_numeric($array['number']) || $array['status'] == null)
+        if ($array['number'] == null || $array['status'] == null)
             
             return;
-
-
-        dd($array);
-        return;
 
         $record = App::make(SchoolRecord::class);
 

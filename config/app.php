@@ -342,6 +342,7 @@ return [
         "association_membership" => "association_membership",
         "condition_type" => "special_conditions_code",
         "email_contact" => "contact_email",
+        "school_email_address" => "contact_email",
         "school_special_conditions_code" => "special_conditions_code",
         "program_type" => "program_type",
     ],
