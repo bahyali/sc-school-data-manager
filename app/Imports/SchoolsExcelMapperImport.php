@@ -85,9 +85,6 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow, WithHeadingRow
             return;
 
 
-        dd($array);
-        return;
-
         $record = App::make(SchoolRecord::class);
 
         $school = $record->addSchool($array['number']);
