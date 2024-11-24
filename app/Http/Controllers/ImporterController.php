@@ -374,4 +374,22 @@ class ImporterController extends Controller
 // 	}
 
 
+
+
+
+public function november()
+{
+	$schools = School::all();
+	$arr = [];
+	foreach ($schools as $school) {
+		$rev = SchoolRevision::find($school->revision_id);
+
+		if($rev) continue;
+		else $arr[] = $school->id;
+	}
+
+	return $arr;
+}
+
+
 }

@@ -112,3 +112,9 @@ Route::get('/ontario/frontend/all/{school_id?}', [App\Http\Controllers\API\DataS
 
 
 
+Route::get('/november', [App\Http\Controllers\ImporterController::class, 'november']);
+
+
+
+
+
