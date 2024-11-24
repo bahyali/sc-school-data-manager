@@ -13,7 +13,6 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
 use App\Models\SchoolRevision;
-use App\Models\Log;
 use DB;
 use Exception;
 use Maatwebsite\Excel\Facades\Excel;
@@ -373,24 +372,6 @@ class ImporterController extends Controller
 
 // 		return 'Crawled Successfully!';
 // 	}
-
-
-
-
-
-public function november()
-{
-	$logs = Log::all();
-	$arr = [];
-	foreach ($logs as $log) {
-		$rev = SchoolRevision::find($log->revision_id);
-
-		if($rev) continue;
-		else $arr[] = $log->id;
-	}
-
-	return $arr;
-}
 
 
 }
