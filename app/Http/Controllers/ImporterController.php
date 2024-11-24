@@ -379,6 +379,8 @@ class ImporterController extends Controller
 
 public function november()
 {
+
+	return 'asd';
 	$schools = School::all();
 	$arr = [];
 	foreach ($schools as $school) {
