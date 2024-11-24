@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
 use App\Models\SchoolRevision;
+use App\Models\Log;
 use DB;
 use Exception;
 use Maatwebsite\Excel\Facades\Excel;
@@ -379,13 +380,13 @@ class ImporterController extends Controller
 
 public function november()
 {
-	$schools = School::all();
+	$logs = Log::all();
 	$arr = [];
-	foreach ($schools as $school) {
-		$rev = SchoolRevision::find($school->revision_id);
+	foreach ($logs as $log) {
+		$rev = SchoolRevision::find($log->revision_id);
 
 		if($rev) continue;
-		else $arr[] = $school->id;
+		else $arr[] = $log->id;
 	}
 
 	return $arr;
