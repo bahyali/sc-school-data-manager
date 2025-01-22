@@ -57,7 +57,7 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow, WithHeadingRow
         if (empty($this->headers)) {
             $this->setHeaders(array_keys($row)); // Store headers only once
         }
-
+        
         // Now $this->headers contains the headers for the entire file
 
         $array = [];
@@ -80,6 +80,10 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow, WithHeadingRow
             }
         }
 
+
+
+        // dd($array);
+        // return;
         if (!isset($array['number']) || $array['number'] == null || !is_numeric($array['number']) || $array['status'] == null)
             
             return;
@@ -91,12 +95,31 @@ class SchoolsExcelMapperImport implements ToModel, WithStartRow, WithHeadingRow
         $school->addRevision($array, $this->data_source);
     }
 
+
     private function transformDate($value, $format = 'Y-m-d')
     {
-        try {
-            return \Carbon\Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value));
-        } catch (\ErrorException $e) {
-            return \Carbon\Carbon::createFromFormat($format, $value);
+        if (is_numeric($value)) {
+            try {
+                return \Carbon\Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value));
+            } catch (\Exception $e) {
+                return null;
+            }
+        } else {
+            try {
+                return \Carbon\Carbon::createFromFormat($format, $value);
+            } catch (\Exception $e) {
+                return null;
+            }
         }
     }
+
+    
+    // private function transformDate($value, $format = 'Y-m-d')
+    // {
+    //     try {
+    //         return \Carbon\Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value));
+    //     } catch (\ErrorException $e) {
+    //         return \Carbon\Carbon::createFromFormat($format, $value);
+    //     }
+    // }
 }

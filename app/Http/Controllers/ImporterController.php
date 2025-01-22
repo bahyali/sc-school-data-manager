@@ -66,7 +66,6 @@ class ImporterController extends Controller
 			$data_source->touch();
 		}
 
-		// If imported successfully update metadata
 		
 
 		return $response;

@@ -158,6 +158,7 @@ class DataMixer
     }
 
 
+    // we put the onsis_items to the top of the collection because during the mixing the priority will be to the bottom items
     public function managingDatasourcesPriorities($revisions)
     {
         $onsis_ds = DataSource::where('name','onsis_all_schools')->first();
@@ -170,8 +171,11 @@ class DataMixer
             }
         }
 
-        if(!empty($onsis_items)) $revisions->push(...$onsis_items); //adding onsis items to the end of collection
+        // if(!empty($onsis_items)) $revisions->push(...$onsis_items); //adding onsis items to the end of collection
+        if(!empty($onsis_items)) $revisions = $onsis_items->merge($revisions); //adding onsis items to the top of collection
         return $revisions;
 
     }
+
+    
 }

@@ -119,6 +119,10 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
                 if ($array_value && in_array($array_key, $this->configuration['date_columns'])) $array_value = $this->transformDate($value);
                 if($array_key == 'status') $array_value = $this->handleSchoolStatus($value);
 
+
+                // if(trim($array_value) == 'Section 21, Personal Privacy') $array_value = 'adasd';
+                if(stripos($array_value,"personal privacy")!== false && stripos($array_key,"email") !== false) $array_value = NULL;
+
                 $array[$array_key] = $array_value;
             }
         }
@@ -140,7 +144,7 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
 
 
         //to skip if there is NO status
-        if(!in_array($array['status'], ['active', 'revoked', 'closed'])) return;
+        // if(!in_array($array['status'], ['active', 'revoked', 'closed'])) return;
 
 
         $record = App::make(SchoolRecord::class);

@@ -248,12 +248,34 @@ return [
         "teachers_with_oct" => "oct_teachers",
 
         "enrolment_2020_2021" => "enrollment",
+        "enrollment_2020_2021" => "enrollment",
+
         "enrolment_2021_2022" => "enrollment_21_22",
+        "enrollment_2021_2022" => "enrollment_21_22",
+
         "enrolment" => "enrollment",
+        "enrollment" => "enrollment",
+
         "student_enrolment" => "enrollment",
+        "student_enrollment" => "enrollment",
+
         "student_enrollment_2020_2021" => "enrollment",
+        "student_enrolment_2020_2021" => "enrollment",
+
         "student_enrollment_2021_2022" => "enrollment_21_22",
+        "student_enrolment_2021_2022" => "enrollment_21_22",
+        
         "student_enrollment_2022_2023" => "enrollment_22_23",
+        "student_enrolment_2022_2023" => "enrollment_22_23",
+        
+        "student_enrolment_2023_2024" => "enrollment_23_24",
+        "student_enrollment_2023_2024" => "enrollment_23_24",
+
+        "student_enrolment_2024_2025" => "enrollment_24_25",
+        "student_enrollment_2024_2025" => "enrollment_24_25",
+
+        "student_enrolment_2025_2026" => "enrollment_25_26",
+        "student_enrollment_2025_2026" => "enrollment_25_26",
 
 
 
@@ -285,10 +307,17 @@ return [
         "corporation_name" => "corporation_name",
         "corporation_establish_date" => "corporation_establish_date",
         "corporation_contact_name" => "corporation_contact_name",
-        
+        "corporatiion_number" => "corporation_number",
+        "corporation_number" => "corporation_number",
+
+        "corporation_email" => "corporation_email",
+        "corporation_email_address" => "corporation_email",
+
+
         "ownership_type" => "ownership_type",
         "cra_bn" => "cra_bn",
         "owner_cra_bn" => "cra_bn",
+        "owner_email" => "owner_email",
 
         "diploma_2014_2015" => "diploma_2014_2015",
         "diploma_2015_2016" => "diploma_2015_2016",
@@ -299,6 +328,9 @@ return [
         "diploma_2020_2021" => "diploma_2020_2021",
         "diploma_2021_2022" => "diploma_2021_2022",
         "diploma_2022_2023" => "diploma_2022_2023",
+        "diploma_2023_2024" => "diploma_2023_2024",
+        "diploma_2024_2025" => "diploma_2024_2025",
+        "diploma_2025_2026" => "diploma_2025_2026",
 
 
         "po_box" => "po_box",
@@ -330,6 +362,10 @@ return [
 
         "principal_start_date" => "principal_start_date",
         "assignment_start_date" => "principal_start_date",
+
+
+        "principal_email_address" => "principal_email",
+
 
 
         //affiliations and associations
