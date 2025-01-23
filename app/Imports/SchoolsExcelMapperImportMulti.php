@@ -147,9 +147,10 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
         $school = $record->addSchool($array['number']);
 
         //sometimes ONSIS does not provide status in sheets like principal, affiliations, etc...
+        //in this case we put the school main status as the revision status
         if( !$array['status'] && $this->data_source->name == 'onsis_all_schools')
         {
-            $array['status'] = $school->status;
+            $array['status'] = $record->getSchoolStatus($array['number']);
         }
 
         //to skip if there is NO status

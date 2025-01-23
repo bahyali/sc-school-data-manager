@@ -90,6 +90,18 @@ class SchoolRecord implements ISchoolRecord
         return $this;
     }
 
+
+
+    public function getSchoolStatus($school_number)
+    {
+        if (!$this->school)
+            throw new Exception("We need a school to create a revision!");
+
+        return $this->school->status;
+    }
+
+
+
     public function getSchool()
     {
         return $this->school;
