@@ -143,12 +143,18 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
         $array['status'] = $this->finalCheckForStatus($array);
 
 
-        //to skip if there is NO status
-        // if(!in_array($array['status'], ['active', 'revoked', 'closed'])) return;
-
-
         $record = App::make(SchoolRecord::class);
         $school = $record->addSchool($array['number']);
+
+        //sometimes ONSIS does not provide status in sheets like principal, affiliations, etc...
+        if( !$array['status'] && $this->data_source->name == 'onsis_all_schools')
+        {
+            $array['status'] = $school->status;
+        }
+
+        //to skip if there is NO status
+        if(!in_array($array['status'], ['active', 'revoked', 'closed'])) return;
+
 
         if( isset($array['principal_name']) && isset($array['principal_last_name'])) $array['principal_name'] = $array['principal_name'].' '.$array['principal_last_name'];
 
