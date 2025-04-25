@@ -214,7 +214,7 @@ class DataSourceController extends Controller
 
         }
 
-        return response()->json(['data' => count($arr)]);
+        return response()->json(['data' => 'asdasd']);
      }
 
 
