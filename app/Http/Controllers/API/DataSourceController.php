@@ -144,7 +144,7 @@ class DataSourceController extends Controller
         // $logs = Log::with(['revision', 'school'])->limit(10)->latest()->get();
         if($school_id) $logs = Log::with(['revision', 'school'])->where('school_id', $school_id)->get();
         // else $logs = Log::with(['revision', 'school'])->get();
-        else $logs = Log::with(['revision', 'school'])->limit(5000)->get();
+        else $logs = Log::with(['revision', 'school'])->orderBy('created_at', 'desc')->limit(5000)->get();
 
 
         foreach ($logs as $log) {
