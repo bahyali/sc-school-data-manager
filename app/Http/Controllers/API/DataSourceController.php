@@ -137,14 +137,14 @@ class DataSourceController extends Controller
      //for the frontend
      public function getOntarioLogs($school_id = null)
      {
-        ini_set('max_execution_time', 400);
+        ini_set('max_execution_time', 300);
 
         $arr = [];
 
         // $logs = Log::with(['revision', 'school'])->limit(10)->latest()->get();
         if($school_id) $logs = Log::with(['revision', 'school'])->where('school_id', $school_id)->get();
-        else $logs = Log::with(['revision', 'school'])->get();
-        // else $logs = Log::with(['revision', 'school'])->limit(200)->get();
+        // else $logs = Log::with(['revision', 'school'])->get();
+        else $logs = Log::with(['revision', 'school'])->limit(5000)->get();
 
 
         foreach ($logs as $log) {
@@ -214,7 +214,7 @@ class DataSourceController extends Controller
 
         }
 
-        return response()->json(['data' => count($arr)]);
+        return response()->json(['data' => $arr]);
      }
 
 
