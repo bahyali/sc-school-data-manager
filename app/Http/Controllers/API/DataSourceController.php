@@ -137,7 +137,7 @@ class DataSourceController extends Controller
      //for the frontend
      public function getOntarioLogs($school_id = null)
      {
-        ini_set('max_execution_time', 300);
+        ini_set('max_execution_time', 400);
 
         $arr = [];
 
@@ -214,7 +214,7 @@ class DataSourceController extends Controller
 
         }
 
-        return response()->json(['data' => 'asdasd']);
+        return response()->json(['data' => count($arr)]);
      }
 
 
