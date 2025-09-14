@@ -22,6 +22,12 @@ class DataSourceController extends Controller
     }
 
 
+    public function getAllWithoutPagination()
+    {
+        return DataSource::whereNotIn('resource', ['auto_mixer', 'conflict_fixed', 'old_resource'])->get();
+    }
+
+
     public function show($idOrName)
     {
         $ds = DataSource::find($idOrName);

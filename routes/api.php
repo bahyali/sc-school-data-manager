@@ -25,6 +25,9 @@ Route::apiResources([
     'data-sources' => App\Http\Controllers\API\DataSourceController::class
 ]);
 
+
+Route::get('/get-data-sources-without-pagination', [App\Http\Controllers\API\DataSourceController::class, 'getAllWithoutPagination']);
+
 Route::get('/schools/{status?}', [App\Http\Controllers\API\SchoolController::class, 'getSchools'])
     ->name('getSchools');
 
