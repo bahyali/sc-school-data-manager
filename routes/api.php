@@ -21,6 +21,12 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::post('/importing', [App\Http\Controllers\ImporterController::class, 'excelImporting'])->name('importing');
 
+// Route::post('/merge-schoolcred-ministry', [App\Http\Controllers\SchoolcredMinistryMergeController::class, 'merge'])
+//     ->name('api.schoolcredMinistryMerge');
+
+// Route::post('/merge-final-redacted-ministry', [App\Http\Controllers\FinalRedactedMinistryMergeController::class, 'merge'])
+//     ->name('api.finalRedactedMinistryMerge');
+
 Route::apiResources([
     'data-sources' => App\Http\Controllers\API\DataSourceController::class
 ]);

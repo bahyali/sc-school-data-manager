@@ -24,6 +24,16 @@ Route::get('/gui/upload', function () {
     return view('all_upload', ['data_sources' => $excel_data_sources]);
 });
 
+// Route::get('/gui/merge-schoolcred-ministry', [App\Http\Controllers\SchoolcredMinistryMergeController::class, 'form'])
+//     ->name('schoolcredMinistryMergeForm');
+// Route::post('/gui/merge-schoolcred-ministry', [App\Http\Controllers\SchoolcredMinistryMergeController::class, 'merge'])
+//     ->name('schoolcredMinistryMerge');
+
+// Route::get('/gui/merge-final-redacted-ministry', [App\Http\Controllers\FinalRedactedMinistryMergeController::class, 'form'])
+//     ->name('finalRedactedMinistryMergeForm');
+// Route::post('/gui/merge-final-redacted-ministry', [App\Http\Controllers\FinalRedactedMinistryMergeController::class, 'merge'])
+//     ->name('finalRedactedMinistryMerge');
+
 
 // Route::get('/active/upload', function () {
 //     return view('active_upload');
