@@ -3,13 +3,9 @@
 namespace App\Imports;
 use Illuminate\Support\Collection;
 
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\Importable;
-use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
-use PhpOffice\PhpSpreadsheet\Cell\Cell;
-
 use Illuminate\Support\Facades\App;
 use App\Classes\SchoolRecord;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -45,19 +41,6 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
     {
 
         
-        // $sorted_by_col = (isset($row[0]['school_number'])) ? 'school_number' : (isset($row[0]['bsid_school_number'])) ? 'bsid_school_number' : 'bsid'  ;
-
-
-        $sorted_by_col = (isset($rows[0]['school_number'])) ? 'school_number' :
-               ((isset($rows[0]['bsid_school_number'])) ? 'bsid_school_number' : 'bsid');
-
-
-
-        
-        // dd($rows[0]);
-
-        //to handle redundancy came from multi-sheets 
-        // $rows = $rows->sortBy($sorted_by_col);//to sort by BSID
 
         $last_row = count($rows);
         $current_row = 1;
@@ -74,8 +57,6 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
             //first-row
             if($current_row == 1) $previous_row = $row;
 
-            //check if current-row still equal the previous row BSID and merge them in one row
-            // elseif($previous_row[0] == $row[0])
             elseif( isset($row['bsid']) && $row['bsid'] == $previous_row['bsid'] || isset($row['school_number']) && $row['school_number'] == $previous_row['school_number'] || isset($row['bsid_school_number']) && $row['bsid_school_number'] == $previous_row['bsid_school_number'] ) 
             {
 
@@ -117,6 +98,9 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
                 $array_value = $value;
 
                 if ($array_value && in_array($array_key, $this->configuration['date_columns'])) $array_value = $this->transformDate($value);
+                if ($array_key === 'grade_range') {
+                    $array_value = $this->normalizeGradeRangeValue($value);
+                }
                 if($array_key == 'status') $array_value = $this->handleSchoolStatus($value);
 
 
@@ -143,6 +127,10 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
         $array['status'] = $this->finalCheckForStatus($array);
 
 
+
+        // dd($array);
+
+
         $record = App::make(SchoolRecord::class);
         $school = $record->addSchool($array['number']);
 
@@ -164,15 +152,79 @@ class SchoolsExcelMapperImportMulti implements WithStartRow, ToCollection, WithH
         // dd($array);
     }
 
-    // private function transformDate($value, $format = 'Y-m-d')
-    // {
-    //     try {
-    //         return \Carbon\Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value));
-    //     } catch (\ErrorException $e) {
-    //         return \Carbon\Carbon::createFromFormat($format, $value);
-    //     }
-    // }
 
+    /**
+     * Excel often auto-formats values like "7-12" as dates. Recover a grade span as "n-j" (e.g. 7-12, 12-9).
+     */
+    private function normalizeGradeRangeValue($value)
+    {
+        if ($value === null || $value === '') {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            $trimmed = trim($value);
+            if ($trimmed === '') {
+                return null;
+            }
+            if (preg_match('/^(\d{1,2})\s*[-–]\s*(\d{1,2})$/u', $trimmed, $m)) {
+                return (int) $m[1] . '-' . (int) $m[2];
+            }
+            if (is_numeric($trimmed)) {
+                try {
+                    $dt = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((float) $trimmed);
+
+                    return \Carbon\Carbon::instance($dt)->format('n-j');
+                } catch (\Throwable $e) {
+                    return $trimmed;
+                }
+            }
+            // Never Carbon::parse() arbitrary text — e.g. "K-12" parses as 2026-04-11 → "4-11".
+            if ($this->stringLooksLikeExcelDisplayedDate($trimmed)) {
+                try {
+                    return \Carbon\Carbon::parse($trimmed)->format('n-j');
+                } catch (\Throwable $e) {
+                    return $trimmed;
+                }
+            }
+
+            return $trimmed;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return \Carbon\Carbon::parse($value)->format('n-j');
+        }
+
+        if (is_numeric($value)) {
+            try {
+                $dt = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((float) $value);
+
+                return \Carbon\Carbon::instance($dt)->format('n-j');
+            } catch (\Throwable $e) {
+                return (string) $value;
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * True only for strings that are plausibly Excel’s date display — not grade labels like "K-12".
+     */
+    private function stringLooksLikeExcelDisplayedDate(string $s): bool
+    {
+        if (preg_match('/\d{1,2}\/\d{1,2}(\/\d{2,4})?/', $s)) {
+            return true;
+        }
+        if (preg_match('/\d{1,2}-\d{1,2}-\d{2,4}/', $s)) {
+            return true;
+        }
+        if (preg_match('/(?i)\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)\b/', $s)) {
+            return true;
+        }
+
+        return false;
+    }
 
 
     private function transformDate($value, $format = 'Y-m-d')

@@ -108,7 +108,10 @@ class DataMixer
         $data_sources = $school->dataSources->pluck('id');
         $last_revision_id = $school->revision_id;
 
-        $last_revision_updated_at = ($last_revision_id) ? $school->lastRevision->updated_at->subMinute()->toDateTimeString() : NULL;
+        $last_revision_updated_at = null;
+        if ($last_revision_id && ($lastRev = $school->lastRevision) && $lastRev->updated_at) {
+            $last_revision_updated_at = $lastRev->updated_at->copy()->subMinute()->toDateTimeString();
+        }
 
         // var_dump($last_revision_updated_at->subMinute()->toDateTimeString());
         // return;
@@ -121,9 +124,10 @@ class DataMixer
                 ->oldest();
 
             // Get latest revision and new ones only
-             if ($last_revision_id)
+            if ($last_revision_id && $last_revision_updated_at) {
                 // $revisions_by_ds = $revisions_by_ds->where('id', '>=', $last_revision_id);
                 $revisions_by_ds = $revisions_by_ds->where('updated_at', '>=', $last_revision_updated_at);
+            }
 
             $revisions_by_ds = $revisions_by_ds->get()
 
