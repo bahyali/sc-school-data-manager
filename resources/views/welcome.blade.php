@@ -125,7 +125,7 @@
         <div class="brand-row">
             <img
                 class="logo"
-                src="{{ asset('schoolcred_logo.png') }}"
+                src="{{ url('/public/schoolcred_logo.png') }}"
                 alt="SchoolCred"
                 width="72"
                 height="72"
