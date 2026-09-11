@@ -27,6 +27,7 @@ class Kernel extends ConsoleKernel
         // $schedule->command('crawl:closed-schools')->hourly();
         $schedule->command('school:import')->hourly();
         $schedule->command('crawl:revoked-schools')->everyMinute();
+        $schedule->command('app:backup-database')->daily();
 
     }
 

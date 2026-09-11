@@ -19,6 +19,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Database Backups
+    |--------------------------------------------------------------------------
+    |
+    | extra_databases is a comma-separated list dumped in addition to
+    | DB_DATABASE, using the same MySQL host/user credentials.
+    |
+    */
+
+    'backup' => [
+        'extra_databases' => env('BACKUP_EXTRA_DATABASES', 'schoolcred_wp'),
+        'keep' => (int) env('BACKUP_KEEP', 7),
+        'mysqldump_path' => env('MYSQLDUMP_PATH', 'mysqldump'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Database Connections
     |--------------------------------------------------------------------------
     |
