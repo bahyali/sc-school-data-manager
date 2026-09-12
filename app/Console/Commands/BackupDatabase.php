@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 class BackupDatabase extends Command
 {
     protected $signature = 'app:backup-database';
-    protected $description = 'Backup the database and retain only the latest 7 backups';
+    protected $description = 'Backup the main database (keep 5) and extra databases (keep 1)';
 
     public function handle()
     {
@@ -18,7 +18,9 @@ class BackupDatabase extends Command
 
         $databases = $this->databasesToBackup();
         $mysqldump = config('database.backup.mysqldump_path', 'mysqldump');
-        $maxBackups = (int) config('database.backup.keep', 7);
+        $mainDatabase = config('database.connections.mysql.database');
+        $keepMain = (int) config('database.backup.keep_main', 5);
+        $keepExtra = (int) config('database.backup.keep_extra', 1);
 
         $backupPath = storage_path('app/backups');
         if (!file_exists($backupPath)) {
@@ -59,6 +61,7 @@ class BackupDatabase extends Command
                 $failed = true;
             }
 
+            $maxBackups = ($database === $mainDatabase) ? $keepMain : $keepExtra;
             $this->pruneOldBackups($backupPath, $database, $maxBackups);
         }
 

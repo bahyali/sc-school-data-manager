@@ -29,7 +29,8 @@ return [
 
     'backup' => [
         'extra_databases' => env('BACKUP_EXTRA_DATABASES', 'schoolcred_wp'),
-        'keep' => (int) env('BACKUP_KEEP', 7),
+        'keep_main' => (int) env('BACKUP_KEEP_MAIN', 5),
+        'keep_extra' => (int) env('BACKUP_KEEP_EXTRA', 1),
         'mysqldump_path' => env('MYSQLDUMP_PATH', 'mysqldump'),
     ],
 
