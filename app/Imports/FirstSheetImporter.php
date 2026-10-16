@@ -2,11 +2,12 @@
 
 namespace App\Imports;
 
+use Maatwebsite\Excel\Concerns\SkipsUnknownSheets;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\Importable;
 
 
-class FirstSheetImporter implements WithMultipleSheets
+class FirstSheetImporter implements WithMultipleSheets, SkipsUnknownSheets
 {
     use Importable;
 
@@ -43,6 +44,11 @@ class FirstSheetImporter implements WithMultipleSheets
                 new SchoolsExcelMapperImport($this->data_source)
             ];
         }
+    }
+
+    public function onUnknownSheet($sheetName)
+    {
+        // ONSIS workbooks sometimes only include School Details.
     }
 
 
