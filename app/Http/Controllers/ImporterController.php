@@ -196,64 +196,18 @@ class ImporterController extends Controller
 	 */
 	private function downloadOntarioFile($data_source)
 	{
-		$resourceId = null;
-		$packageId = null;
-		$haystack = (string) $data_source->url . ' ' . (string) ($data_source->configuration['url'] ?? '');
+		$records = $this->fetchOntarioDatastoreRecords();
 
-		if (preg_match('/resource\/([0-9a-f-]{36})/i', $haystack, $matches)) {
-			$resourceId = $matches[1];
-		}
-		if (preg_match('/dataset\/([0-9a-f-]{36})/i', $haystack, $matches)) {
-			$packageId = $matches[1];
+		if (!$records) {
+			throw new Exception('Ontario datastore returned no school rows.');
 		}
 
-		$fileUrl = null;
-		$name = null;
-
-		if ($packageId && $resourceId) {
-			$fileUrl = 'https://data.ontario.ca/dataset/' . $packageId . '/resource/' . $resourceId . '/download/private_school_contact_information_eng.xlsx';
-		}
-
-		try {
-			$records = $this->fetchOntarioDatastoreRecords();
-			if ($records) {
-				return [
-					'url' => $fileUrl ?: 'private_school_contact_information_eng.xlsx',
-					'body' => $this->ontarioRecordsToXlsx($records),
-					'headers' => [],
-					'name' => $name,
-				];
-			}
-		} catch (Exception $e) {
-			// The file URL below is the fallback when the API cannot be reached.
-		}
-
-		if ($resourceId) {
-			try {
-				$response = $this->fetchRemote(
-					'https://data.ontario.ca/api/3/action/resource_show?id=' . $resourceId
-				);
-				$payload = json_decode($response['body'], true);
-				if (!empty($payload['result']['url'])) {
-					$fileUrl = $payload['result']['url'];
-					$name = $payload['result']['name'] ?? null;
-				}
-			} catch (Exception $e) {
-				// Keep the direct download URL already built above.
-			}
-		}
-
-		if ($fileUrl) {
-			$response = $this->fetchRemote($fileUrl);
-			return [
-				'url' => $fileUrl,
-				'body' => $response['body'],
-				'headers' => $response['headers'],
-				'name' => $name,
-			];
-		}
-
-		throw new Exception('Ontario school file could not be downloaded.');
+		return [
+			'url' => 'private_school_contact_information_eng.xlsx',
+			'body' => $this->ontarioRecordsToXlsx($records),
+			'headers' => [],
+			'name' => null,
+		];
 	}
 
 
@@ -266,16 +220,13 @@ class ImporterController extends Controller
 		$total = null;
 
 		do {
+			$query = http_build_query([
+				'resource_id' => $resourceId,
+				'limit' => $limit,
+				'offset' => $offset,
+			]);
 			$response = $this->fetchRemote(
-				'https://data.ontario.ca/api/3/action/datastore_search',
-				[
-					'method' => 'POST',
-					'body' => json_encode([
-						'resource_id' => $resourceId,
-						'limit' => $limit,
-						'offset' => $offset,
-					]),
-				]
+				'https://data.ontario.ca/api/3/action/datastore_search?' . $query
 			);
 			$payload = json_decode($response['body'], true);
 			if (empty($payload['success'])) {
@@ -351,7 +302,7 @@ class ImporterController extends Controller
 				'http_errors' => false,
 				'allow_redirects' => true,
 				'headers' => [
-					'User-Agent' => 'schoolcred-importer/1.0',
+					'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
 					'Accept' => 'application/json, */*',
 					'Accept-Language' => 'en-CA,en;q=0.9',
 				],
