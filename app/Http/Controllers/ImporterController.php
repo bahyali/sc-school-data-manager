@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\SchoolRevision;
 use DB;
 use Exception;
+use GuzzleHttp\Client;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SchoolsExcelMapperImportMulti;
 use App\Models\DataChange;
@@ -147,30 +148,22 @@ class ImporterController extends Controller
 
 	public function ontarioImporting()
 	{
-		$context = stream_context_create(
-		    array(
-		        "http" => array(
-		            "header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"
-		        )
-		    )
-		);
-		
 		$data_source = DataSource::where('name', 'active_schools')->first();
-		$url = $data_source->configuration['url'];
 
-		$html_url = $data_source->url;
-		$html_page_content = file_get_contents($html_url, false, $context);
-
-    	// preg_match('/<a\s+class="dataset-download-link resource-url-analytics resource-type-None"\s+href="([^"]+)"/i', $html_page_content, $matches);
-    	preg_match('/<a\s+class="[^"]*dataset-download-link[^"]*"\s+href="([^"]+)"/i', $html_page_content, $matches);
-
-		if (!empty($matches[1])) {
-	      	$href = $matches[1];
-		 	$file_name = pathinfo($href, PATHINFO_BASENAME);
-			$file = file_get_contents($href, false, $context);
-		} else {
-		    return "Link not found.";
+		if (!$data_source) {
+			return 'Active schools data source not found.';
 		}
+
+		$download = $this->resolveOntarioDownload($data_source);
+
+		if (!$download) {
+			return 'Link not found.';
+		}
+
+		$href = $download['url'];
+		$fileResponse = $this->fetchRemote($href);
+		$file = $fileResponse['body'];
+		$file_name = $this->ontarioFileName($href, $fileResponse['headers'], $download['name'] ?? null);
 
 
 		$filePath = 'ontario/'.$file_name;
@@ -188,6 +181,116 @@ class ImporterController extends Controller
 
 
 		return $this->importOntarioExcel($data_source, $path, $file_name);
+	}
+
+
+	/**
+	 * Ontario's dataset page returns 429 when scraped. The CKAN API is the
+	 * stable source for the current file URL; the configured download URL
+	 * and the HTML page are fallbacks.
+	 */
+	private function resolveOntarioDownload($data_source)
+	{
+		$resourceId = null;
+		if (preg_match('/resource\/([0-9a-f-]{36})/i', (string) $data_source->url, $matches)) {
+			$resourceId = $matches[1];
+		}
+
+		if ($resourceId) {
+			try {
+				$response = $this->fetchRemote(
+					'https://data.ontario.ca/api/3/action/resource_show?id=' . $resourceId
+				);
+				$payload = json_decode($response['body'], true);
+				if (!empty($payload['result']['url'])) {
+					return [
+						'url' => $payload['result']['url'],
+						'name' => $payload['result']['name'] ?? null,
+					];
+				}
+			} catch (Exception $e) {
+				// Fall through to the stored download URL.
+			}
+		}
+
+		$configured = $data_source->configuration['url'] ?? null;
+		if ($configured) {
+			return ['url' => $configured, 'name' => null];
+		}
+
+		try {
+			$response = $this->fetchRemote($data_source->url);
+			if (preg_match('/<a\s+class="[^"]*dataset-download-link[^"]*"\s+href="([^"]+)"/i', $response['body'], $matches)) {
+				return ['url' => html_entity_decode($matches[1]), 'name' => null];
+			}
+		} catch (Exception $e) {
+			return null;
+		}
+
+		return null;
+	}
+
+
+	private function fetchRemote($url)
+	{
+		$client = new Client([
+			'timeout' => 120,
+			'connect_timeout' => 20,
+			'http_errors' => false,
+			'allow_redirects' => true,
+			'headers' => [
+				'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+				'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,application/json;q=0.8,*/*;q=0.7',
+				'Accept-Language' => 'en-CA,en;q=0.9',
+			],
+		]);
+
+		$attempt = 0;
+		$maxAttempts = 5;
+		$status = 0;
+
+		while ($attempt < $maxAttempts) {
+			$attempt++;
+			$response = $client->get($url);
+			$status = $response->getStatusCode();
+
+			if ($status >= 200 && $status < 300) {
+				return [
+					'body' => (string) $response->getBody(),
+					'headers' => $response->getHeaders(),
+				];
+			}
+
+			if (in_array($status, [429, 503], true) && $attempt < $maxAttempts) {
+				$retryAfter = (int) $response->getHeaderLine('Retry-After');
+				sleep($retryAfter > 0 ? min($retryAfter, 120) : min(60, 2 ** $attempt));
+				continue;
+			}
+
+			break;
+		}
+
+		throw new Exception('Failed to fetch ' . $url . ' (HTTP ' . $status . ').');
+	}
+
+
+	private function ontarioFileName($url, array $headers, $fallbackName = null)
+	{
+		$basename = pathinfo(parse_url($url, PHP_URL_PATH) ?: '', PATHINFO_BASENAME);
+		if ($basename && preg_match('/\.(xlsx|xls|csv)$/i', $basename)) {
+			return $basename;
+		}
+
+		$contentDisposition = $headers['Content-Disposition'][0] ?? '';
+		if (preg_match('/filename="?([^";]+)"?/i', $contentDisposition, $matches)) {
+			return basename($matches[1]);
+		}
+
+		if ($fallbackName && preg_match('/\.(xlsx|xls|csv)$/i', $fallbackName)) {
+			return $fallbackName;
+		}
+
+		return 'ontario-active-schools.xlsx';
 	}
 
 
