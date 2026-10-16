@@ -16,7 +16,10 @@ use App\Models\SchoolRevision;
 use DB;
 use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ConnectException;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use App\Imports\SchoolsExcelMapperImportMulti;
 use App\Models\DataChange;
 // use Symfony\Component\DomCrawler\Crawler;
@@ -186,10 +189,10 @@ class ImporterController extends Controller
 
 
 	/**
-	 * The stored configuration URL can point at an old spreadsheet. Ontario
-	 * rate-limits those historical download paths. The CKAN API names the
-	 * current file; the bare /download path is the same file without a
-	 * stale filename.
+	 * Ontario rate-limits /download/ from this host. The CKAN API still
+	 * serves the same English school list, so a blocked file download falls
+	 * back to that datastore and is written as the spreadsheet the importer
+	 * already expects.
 	 */
 	private function downloadOntarioFile($data_source)
 	{
@@ -204,99 +207,169 @@ class ImporterController extends Controller
 			$packageId = $matches[1];
 		}
 
-		$candidates = [];
+		$fileUrl = null;
 		$name = null;
 
 		if ($resourceId) {
 			try {
 				$response = $this->fetchRemote(
-					'https://data.ontario.ca/api/3/action/resource_show?id=' . $resourceId,
-					2
+					'https://data.ontario.ca/api/3/action/resource_show?id=' . $resourceId
 				);
 				$payload = json_decode($response['body'], true);
 				if (!empty($payload['result']['url'])) {
-					$candidates[] = $payload['result']['url'];
+					$fileUrl = $payload['result']['url'];
 					$name = $payload['result']['name'] ?? null;
 				}
 			} catch (Exception $e) {
-				// The file URL below still points at the current spreadsheet.
-			}
-
-			if ($packageId) {
-				$candidates[] = 'https://data.ontario.ca/dataset/' . $packageId . '/resource/' . $resourceId . '/download';
+				$fileUrl = null;
 			}
 		}
 
-		$configured = $data_source->configuration['url'] ?? null;
-		if ($configured && !$resourceId) {
-			$candidates[] = $configured;
+		if (!$fileUrl && $packageId && $resourceId) {
+			$fileUrl = 'https://data.ontario.ca/dataset/' . $packageId . '/resource/' . $resourceId . '/download';
 		}
 
-		$candidates = array_values(array_unique(array_filter($candidates)));
-		$lastError = null;
-
-		foreach ($candidates as $url) {
+		if ($fileUrl) {
 			try {
-				$response = $this->fetchRemote($url, 2);
+				$response = $this->fetchRemote($fileUrl);
 				return [
-					'url' => $url,
+					'url' => $fileUrl,
 					'body' => $response['body'],
 					'headers' => $response['headers'],
 					'name' => $name,
 				];
 			} catch (Exception $e) {
-				$lastError = $e;
+				// File downloads are the requests Ontario is rejecting.
 			}
 		}
 
-		if ($lastError) {
-			throw $lastError;
+		$records = $this->fetchOntarioDatastoreRecords();
+		if (!$records) {
+			throw new Exception('Ontario rate-limited the spreadsheet download and the datastore backup was empty.');
 		}
 
-		return null;
+		return [
+			'url' => 'https://data.ontario.ca/dataset/7a049187-cf29-4ffe-9028-235b95c61fa3/resource/6545c5ec-a5ce-411c-8ad5-d66363da8891/download/private_school_contact_information_eng.xlsx',
+			'body' => $this->ontarioRecordsToXlsx($records),
+			'headers' => [],
+			'name' => $name,
+		];
 	}
 
 
-	private function fetchRemote($url, $maxAttempts = 2)
+	private function fetchOntarioDatastoreRecords()
 	{
-		$client = new Client([
-			'timeout' => 120,
-			'connect_timeout' => 20,
-			'http_errors' => false,
-			'allow_redirects' => true,
-			'headers' => [
-				'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-				'Accept' => '*/*',
-				'Accept-Language' => 'en-CA,en;q=0.9',
-				'Referer' => 'https://data.ontario.ca/',
-			],
-		]);
+		$resourceId = 'd16de265-35e9-4277-9381-0c311e802e39';
+		$records = [];
+		$offset = 0;
+		$limit = 1000;
+		$total = null;
 
-		$attempt = 0;
-		$status = 0;
-
-		while ($attempt < $maxAttempts) {
-			$attempt++;
-			$response = $client->get($url);
-			$status = $response->getStatusCode();
-
-			if ($status >= 200 && $status < 300) {
-				return [
-					'body' => (string) $response->getBody(),
-					'headers' => $response->getHeaders(),
-				];
+		do {
+			$response = $this->fetchRemote(
+				'https://data.ontario.ca/api/3/action/datastore_search?resource_id=' . $resourceId . '&limit=' . $limit . '&offset=' . $offset
+			);
+			$payload = json_decode($response['body'], true);
+			if (empty($payload['success'])) {
+				throw new Exception('Ontario datastore request failed.');
 			}
 
-			if (in_array($status, [429, 503], true) && $attempt < $maxAttempts) {
-				$retryAfter = (int) $response->getHeaderLine('Retry-After');
-				sleep($retryAfter > 0 ? min($retryAfter, 90) : 45);
-				continue;
-			}
+			$batch = $payload['result']['records'] ?? [];
+			$records = array_merge($records, $batch);
+			$total = (int) ($payload['result']['total'] ?? count($records));
+			$offset += $limit;
+		} while ($offset < $total && count($batch) > 0);
 
-			break;
+		return $records;
+	}
+
+
+	private function ontarioRecordsToXlsx(array $records)
+	{
+		$headers = [
+			'School Name',
+			'School Number',
+			'OSSD Credits Offered',
+			'Principal Name',
+			'Suite',
+			'PO Box',
+			'Street Address',
+			'City',
+			'Province',
+			'Postal Code',
+			'Telephone Number',
+			'Fax',
+			'Region',
+			'School Email Address',
+			'School Website',
+			'School Level',
+			'School Special Conditions Type',
+			'Program Type',
+			'Association Membership',
+		];
+
+		$rows = [$headers];
+		foreach ($records as $record) {
+			$line = [];
+			foreach ($headers as $header) {
+				$value = $record[$header] ?? '';
+				$line[] = $value === null ? '' : $value;
+			}
+			$rows[] = $line;
 		}
 
-		throw new Exception('Failed to fetch ' . $url . ' (HTTP ' . $status . ').');
+		$spreadsheet = new Spreadsheet();
+		$spreadsheet->getActiveSheet()->fromArray($rows, null, 'A1');
+
+		$temp = tempnam(sys_get_temp_dir(), 'ontario');
+		(new Xlsx($spreadsheet))->save($temp);
+		$body = file_get_contents($temp);
+		@unlink($temp);
+		$spreadsheet->disconnectWorksheets();
+
+		return $body;
+	}
+
+
+	private function fetchRemote($url)
+	{
+		$lastStatus = 0;
+
+		foreach (['v6', 'v4'] as $family) {
+			try {
+				$client = new Client([
+					'timeout' => 120,
+					'connect_timeout' => 15,
+					'http_errors' => false,
+					'allow_redirects' => true,
+					'force_ip_resolve' => $family,
+					'headers' => [
+						'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+						'Accept' => '*/*',
+						'Accept-Language' => 'en-CA,en;q=0.9',
+						'Referer' => 'https://data.ontario.ca/',
+					],
+				]);
+
+				$response = $client->get($url);
+				$lastStatus = $response->getStatusCode();
+
+				if ($lastStatus >= 200 && $lastStatus < 300) {
+					return [
+						'body' => (string) $response->getBody(),
+						'headers' => $response->getHeaders(),
+					];
+				}
+
+				if (!in_array($lastStatus, [429, 503], true)) {
+					break;
+				}
+			} catch (ConnectException $e) {
+				continue;
+			}
+		}
+
+		throw new Exception('Failed to fetch ' . $url . ' (HTTP ' . $lastStatus . ').');
 	}
 
 
