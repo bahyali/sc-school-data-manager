@@ -15,11 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\SchoolRevision;
 use DB;
 use Exception;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ConnectException;
 use Maatwebsite\Excel\Facades\Excel;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use App\Imports\SchoolsExcelMapperImportMulti;
 use App\Models\DataChange;
 // use Symfony\Component\DomCrawler\Crawler;
@@ -151,23 +147,30 @@ class ImporterController extends Controller
 
 	public function ontarioImporting()
 	{
-		ini_set('max_execution_time', 1800);
-
+		$context = stream_context_create(
+		    array(
+		        "http" => array(
+		            "header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"
+		        )
+		    )
+		);
+		
 		$data_source = DataSource::where('name', 'active_schools')->first();
+		$url = $data_source->configuration['url'];
 
-		if (!$data_source) {
-			return 'Active schools data source not found.';
+		$html_url = $data_source->url;
+		$html_page_content = file_get_contents($html_url, false, $context);
+
+    	// preg_match('/<a\s+class="dataset-download-link resource-url-analytics resource-type-None"\s+href="([^"]+)"/i', $html_page_content, $matches);
+    	preg_match('/<a\s+class="[^"]*dataset-download-link[^"]*"\s+href="([^"]+)"/i', $html_page_content, $matches);
+
+		if (!empty($matches[1])) {
+	      	$href = $matches[1];
+		 	$file_name = pathinfo($href, PATHINFO_BASENAME);
+			$file = file_get_contents($href, false, $context);
+		} else {
+		    return "Link not found.";
 		}
-
-		$download = $this->downloadOntarioFile($data_source);
-
-		if (!$download) {
-			return 'Link not found.';
-		}
-
-		$href = $download['url'];
-		$file = $download['body'];
-		$file_name = $this->ontarioFileName($href, $download['headers'], $download['name'] ?? null);
 
 
 		$filePath = 'ontario/'.$file_name;
@@ -185,172 +188,6 @@ class ImporterController extends Controller
 
 
 		return $this->importOntarioExcel($data_source, $path, $file_name);
-	}
-
-
-	/**
-	 * Ontario rate-limits /download/ from this host. The CKAN API still
-	 * serves the same English school list, so a blocked file download falls
-	 * back to that datastore and is written as the spreadsheet the importer
-	 * already expects.
-	 */
-	private function downloadOntarioFile($data_source)
-	{
-		$records = $this->fetchOntarioDatastoreRecords();
-
-		if (!$records) {
-			throw new Exception('Ontario datastore returned no school rows.');
-		}
-
-		return [
-			'url' => 'private_school_contact_information_eng.xlsx',
-			'body' => $this->ontarioRecordsToXlsx($records),
-			'headers' => [],
-			'name' => null,
-		];
-	}
-
-
-	private function fetchOntarioDatastoreRecords()
-	{
-		$resourceId = 'd16de265-35e9-4277-9381-0c311e802e39';
-		$records = [];
-		$offset = 0;
-		$limit = 1000;
-		$total = null;
-
-		do {
-			$query = http_build_query([
-				'resource_id' => $resourceId,
-				'limit' => $limit,
-				'offset' => $offset,
-			]);
-			$response = $this->fetchRemote(
-				'https://data.ontario.ca/api/3/action/datastore_search?' . $query
-			);
-			$payload = json_decode($response['body'], true);
-			if (empty($payload['success'])) {
-				throw new Exception('Ontario datastore request failed.');
-			}
-
-			$batch = $payload['result']['records'] ?? [];
-			$records = array_merge($records, $batch);
-			$total = (int) ($payload['result']['total'] ?? count($records));
-			$offset += $limit;
-		} while ($offset < $total && count($batch) > 0);
-
-		return $records;
-	}
-
-
-	private function ontarioRecordsToXlsx(array $records)
-	{
-		$headers = [
-			'School Name',
-			'School Number',
-			'OSSD Credits Offered',
-			'Principal Name',
-			'Suite',
-			'PO Box',
-			'Street Address',
-			'City',
-			'Province',
-			'Postal Code',
-			'Telephone Number',
-			'Fax',
-			'Region',
-			'School Email Address',
-			'School Website',
-			'School Level',
-			'School Special Conditions Type',
-			'Program Type',
-			'Association Membership',
-		];
-
-		$rows = [$headers];
-		foreach ($records as $record) {
-			$line = [];
-			foreach ($headers as $header) {
-				$value = $record[$header] ?? '';
-				$line[] = $value === null ? '' : $value;
-			}
-			$rows[] = $line;
-		}
-
-		$spreadsheet = new Spreadsheet();
-		$spreadsheet->getActiveSheet()->fromArray($rows, null, 'A1');
-
-		$temp = tempnam(sys_get_temp_dir(), 'ontario');
-		(new Xlsx($spreadsheet))->save($temp);
-		$body = file_get_contents($temp);
-		@unlink($temp);
-		$spreadsheet->disconnectWorksheets();
-
-		return $body;
-	}
-
-
-	private function fetchRemote($url, array $options = [])
-	{
-		$lastStatus = 0;
-		$lastError = '';
-
-		try {
-			$client = new Client([
-				'timeout' => 120,
-				'connect_timeout' => 20,
-				'http_errors' => false,
-				'allow_redirects' => true,
-				'headers' => [
-					'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-					'Accept' => 'application/json, */*',
-					'Accept-Language' => 'en-CA,en;q=0.9',
-				],
-			]);
-
-			if (($options['method'] ?? 'GET') === 'POST') {
-				$response = $client->post($url, [
-					'headers' => ['Content-Type' => 'application/json'],
-					'body' => $options['body'] ?? '{}',
-				]);
-			} else {
-				$response = $client->get($url);
-			}
-
-			$lastStatus = $response->getStatusCode();
-
-			if ($lastStatus >= 200 && $lastStatus < 300) {
-				return [
-					'body' => (string) $response->getBody(),
-					'headers' => $response->getHeaders(),
-				];
-			}
-		} catch (ConnectException $e) {
-			$lastError = $e->getMessage();
-		}
-
-		$detail = $lastError ? ' ' . $lastError : '';
-		throw new Exception('Failed to fetch ' . $url . ' (HTTP ' . $lastStatus . ').' . $detail);
-	}
-
-
-	private function ontarioFileName($url, array $headers, $fallbackName = null)
-	{
-		$basename = pathinfo(parse_url($url, PHP_URL_PATH) ?: '', PATHINFO_BASENAME);
-		if ($basename && preg_match('/\.(xlsx|xls|csv)$/i', $basename)) {
-			return $basename;
-		}
-
-		$contentDisposition = $headers['Content-Disposition'][0] ?? '';
-		if (preg_match('/filename="?([^";]+)"?/i', $contentDisposition, $matches)) {
-			return basename($matches[1]);
-		}
-
-		if ($fallbackName && preg_match('/\.(xlsx|xls|csv)$/i', $fallbackName)) {
-			return $fallbackName;
-		}
-
-		return 'ontario-active-schools.xlsx';
 	}
 
 
