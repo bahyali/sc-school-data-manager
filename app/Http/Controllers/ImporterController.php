@@ -210,6 +210,24 @@ class ImporterController extends Controller
 		$fileUrl = null;
 		$name = null;
 
+		if ($packageId && $resourceId) {
+			$fileUrl = 'https://data.ontario.ca/dataset/' . $packageId . '/resource/' . $resourceId . '/download/private_school_contact_information_eng.xlsx';
+		}
+
+		try {
+			$records = $this->fetchOntarioDatastoreRecords();
+			if ($records) {
+				return [
+					'url' => $fileUrl ?: 'private_school_contact_information_eng.xlsx',
+					'body' => $this->ontarioRecordsToXlsx($records),
+					'headers' => [],
+					'name' => $name,
+				];
+			}
+		} catch (Exception $e) {
+			// The file URL below is the fallback when the API cannot be reached.
+		}
+
 		if ($resourceId) {
 			try {
 				$response = $this->fetchRemote(
@@ -221,39 +239,21 @@ class ImporterController extends Controller
 					$name = $payload['result']['name'] ?? null;
 				}
 			} catch (Exception $e) {
-				$fileUrl = null;
+				// Keep the direct download URL already built above.
 			}
-		}
-
-		if (!$fileUrl && $packageId && $resourceId) {
-			$fileUrl = 'https://data.ontario.ca/dataset/' . $packageId . '/resource/' . $resourceId . '/download';
 		}
 
 		if ($fileUrl) {
-			try {
-				$response = $this->fetchRemote($fileUrl);
-				return [
-					'url' => $fileUrl,
-					'body' => $response['body'],
-					'headers' => $response['headers'],
-					'name' => $name,
-				];
-			} catch (Exception $e) {
-				// File downloads are the requests Ontario is rejecting.
-			}
+			$response = $this->fetchRemote($fileUrl);
+			return [
+				'url' => $fileUrl,
+				'body' => $response['body'],
+				'headers' => $response['headers'],
+				'name' => $name,
+			];
 		}
 
-		$records = $this->fetchOntarioDatastoreRecords();
-		if (!$records) {
-			throw new Exception('Ontario rate-limited the spreadsheet download and the datastore backup was empty.');
-		}
-
-		return [
-			'url' => 'https://data.ontario.ca/dataset/7a049187-cf29-4ffe-9028-235b95c61fa3/resource/6545c5ec-a5ce-411c-8ad5-d66363da8891/download/private_school_contact_information_eng.xlsx',
-			'body' => $this->ontarioRecordsToXlsx($records),
-			'headers' => [],
-			'name' => $name,
-		];
+		throw new Exception('Ontario school file could not be downloaded.');
 	}
 
 
@@ -267,7 +267,15 @@ class ImporterController extends Controller
 
 		do {
 			$response = $this->fetchRemote(
-				'https://data.ontario.ca/api/3/action/datastore_search?resource_id=' . $resourceId . '&limit=' . $limit . '&offset=' . $offset
+				'https://data.ontario.ca/api/3/action/datastore_search',
+				[
+					'method' => 'POST',
+					'body' => json_encode([
+						'resource_id' => $resourceId,
+						'limit' => $limit,
+						'offset' => $offset,
+					]),
+				]
 			);
 			$payload = json_decode($response['body'], true);
 			if (empty($payload['success'])) {
@@ -331,45 +339,47 @@ class ImporterController extends Controller
 	}
 
 
-	private function fetchRemote($url)
+	private function fetchRemote($url, array $options = [])
 	{
 		$lastStatus = 0;
+		$lastError = '';
 
-		foreach (['v6', 'v4'] as $family) {
-			try {
-				$client = new Client([
-					'timeout' => 120,
-					'connect_timeout' => 15,
-					'http_errors' => false,
-					'allow_redirects' => true,
-					'force_ip_resolve' => $family,
-					'headers' => [
-						'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-						'Accept' => '*/*',
-						'Accept-Language' => 'en-CA,en;q=0.9',
-						'Referer' => 'https://data.ontario.ca/',
-					],
+		try {
+			$client = new Client([
+				'timeout' => 120,
+				'connect_timeout' => 20,
+				'http_errors' => false,
+				'allow_redirects' => true,
+				'headers' => [
+					'User-Agent' => 'schoolcred-importer/1.0',
+					'Accept' => 'application/json, */*',
+					'Accept-Language' => 'en-CA,en;q=0.9',
+				],
+			]);
+
+			if (($options['method'] ?? 'GET') === 'POST') {
+				$response = $client->post($url, [
+					'headers' => ['Content-Type' => 'application/json'],
+					'body' => $options['body'] ?? '{}',
 				]);
-
+			} else {
 				$response = $client->get($url);
-				$lastStatus = $response->getStatusCode();
-
-				if ($lastStatus >= 200 && $lastStatus < 300) {
-					return [
-						'body' => (string) $response->getBody(),
-						'headers' => $response->getHeaders(),
-					];
-				}
-
-				if (!in_array($lastStatus, [429, 503], true)) {
-					break;
-				}
-			} catch (ConnectException $e) {
-				continue;
 			}
+
+			$lastStatus = $response->getStatusCode();
+
+			if ($lastStatus >= 200 && $lastStatus < 300) {
+				return [
+					'body' => (string) $response->getBody(),
+					'headers' => $response->getHeaders(),
+				];
+			}
+		} catch (ConnectException $e) {
+			$lastError = $e->getMessage();
 		}
 
-		throw new Exception('Failed to fetch ' . $url . ' (HTTP ' . $lastStatus . ').');
+		$detail = $lastError ? ' ' . $lastError : '';
+		throw new Exception('Failed to fetch ' . $url . ' (HTTP ' . $lastStatus . ').' . $detail);
 	}
 
 
