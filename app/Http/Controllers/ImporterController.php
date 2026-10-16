@@ -148,22 +148,23 @@ class ImporterController extends Controller
 
 	public function ontarioImporting()
 	{
+		ini_set('max_execution_time', 1800);
+
 		$data_source = DataSource::where('name', 'active_schools')->first();
 
 		if (!$data_source) {
 			return 'Active schools data source not found.';
 		}
 
-		$download = $this->resolveOntarioDownload($data_source);
+		$download = $this->downloadOntarioFile($data_source);
 
 		if (!$download) {
 			return 'Link not found.';
 		}
 
 		$href = $download['url'];
-		$fileResponse = $this->fetchRemote($href);
-		$file = $fileResponse['body'];
-		$file_name = $this->ontarioFileName($href, $fileResponse['headers'], $download['name'] ?? null);
+		$file = $download['body'];
+		$file_name = $this->ontarioFileName($href, $download['headers'], $download['name'] ?? null);
 
 
 		$filePath = 'ontario/'.$file_name;
@@ -185,53 +186,78 @@ class ImporterController extends Controller
 
 
 	/**
-	 * Ontario's dataset page returns 429 when scraped. The CKAN API is the
-	 * stable source for the current file URL; the configured download URL
-	 * and the HTML page are fallbacks.
+	 * The stored configuration URL can point at an old spreadsheet. Ontario
+	 * rate-limits those historical download paths. The CKAN API names the
+	 * current file; the bare /download path is the same file without a
+	 * stale filename.
 	 */
-	private function resolveOntarioDownload($data_source)
+	private function downloadOntarioFile($data_source)
 	{
 		$resourceId = null;
-		if (preg_match('/resource\/([0-9a-f-]{36})/i', (string) $data_source->url, $matches)) {
+		$packageId = null;
+		$haystack = (string) $data_source->url . ' ' . (string) ($data_source->configuration['url'] ?? '');
+
+		if (preg_match('/resource\/([0-9a-f-]{36})/i', $haystack, $matches)) {
 			$resourceId = $matches[1];
 		}
+		if (preg_match('/dataset\/([0-9a-f-]{36})/i', $haystack, $matches)) {
+			$packageId = $matches[1];
+		}
+
+		$candidates = [];
+		$name = null;
 
 		if ($resourceId) {
 			try {
 				$response = $this->fetchRemote(
-					'https://data.ontario.ca/api/3/action/resource_show?id=' . $resourceId
+					'https://data.ontario.ca/api/3/action/resource_show?id=' . $resourceId,
+					2
 				);
 				$payload = json_decode($response['body'], true);
 				if (!empty($payload['result']['url'])) {
-					return [
-						'url' => $payload['result']['url'],
-						'name' => $payload['result']['name'] ?? null,
-					];
+					$candidates[] = $payload['result']['url'];
+					$name = $payload['result']['name'] ?? null;
 				}
 			} catch (Exception $e) {
-				// Fall through to the stored download URL.
+				// The file URL below still points at the current spreadsheet.
+			}
+
+			if ($packageId) {
+				$candidates[] = 'https://data.ontario.ca/dataset/' . $packageId . '/resource/' . $resourceId . '/download';
 			}
 		}
 
 		$configured = $data_source->configuration['url'] ?? null;
-		if ($configured) {
-			return ['url' => $configured, 'name' => null];
+		if ($configured && !$resourceId) {
+			$candidates[] = $configured;
 		}
 
-		try {
-			$response = $this->fetchRemote($data_source->url);
-			if (preg_match('/<a\s+class="[^"]*dataset-download-link[^"]*"\s+href="([^"]+)"/i', $response['body'], $matches)) {
-				return ['url' => html_entity_decode($matches[1]), 'name' => null];
+		$candidates = array_values(array_unique(array_filter($candidates)));
+		$lastError = null;
+
+		foreach ($candidates as $url) {
+			try {
+				$response = $this->fetchRemote($url, 2);
+				return [
+					'url' => $url,
+					'body' => $response['body'],
+					'headers' => $response['headers'],
+					'name' => $name,
+				];
+			} catch (Exception $e) {
+				$lastError = $e;
 			}
-		} catch (Exception $e) {
-			return null;
+		}
+
+		if ($lastError) {
+			throw $lastError;
 		}
 
 		return null;
 	}
 
 
-	private function fetchRemote($url)
+	private function fetchRemote($url, $maxAttempts = 2)
 	{
 		$client = new Client([
 			'timeout' => 120,
@@ -240,13 +266,13 @@ class ImporterController extends Controller
 			'allow_redirects' => true,
 			'headers' => [
 				'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-				'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,application/json;q=0.8,*/*;q=0.7',
+				'Accept' => '*/*',
 				'Accept-Language' => 'en-CA,en;q=0.9',
+				'Referer' => 'https://data.ontario.ca/',
 			],
 		]);
 
 		$attempt = 0;
-		$maxAttempts = 5;
 		$status = 0;
 
 		while ($attempt < $maxAttempts) {
@@ -263,7 +289,7 @@ class ImporterController extends Controller
 
 			if (in_array($status, [429, 503], true) && $attempt < $maxAttempts) {
 				$retryAfter = (int) $response->getHeaderLine('Retry-After');
-				sleep($retryAfter > 0 ? min($retryAfter, 120) : min(60, 2 ** $attempt));
+				sleep($retryAfter > 0 ? min($retryAfter, 90) : 45);
 				continue;
 			}
 
