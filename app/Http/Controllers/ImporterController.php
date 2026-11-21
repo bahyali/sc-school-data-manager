@@ -159,23 +159,30 @@ class ImporterController extends Controller
 			return 'Active schools data source not found.';
 		}
 
-		// Ontario rate-limits HTML/file downloads from this host (HTTP 429).
-		// The same English school list is available via the CKAN datastore API.
-		$records = $this->fetchOntarioDatastoreRecords();
-		if (!$records) {
-			throw new Exception('Ontario datastore returned no school rows.');
-		}
-
 		$file_name = 'private_school_contact_information_eng.xlsx';
-		$file = $this->ontarioRecordsToXlsx($records);
 		$filePath = 'ontario/'.$file_name;
 
-		if (Storage::disk('public')->exists($filePath)) {
-			Storage::disk('public')->delete($filePath);
-		}
+		// Ontario rate-limits this host (HTTP 429). Prefer the datastore API;
+		// if it is still blocked, reuse the last saved spreadsheet.
+		try {
+			$records = $this->fetchOntarioDatastoreRecords();
+			if (!$records) {
+				throw new Exception('Ontario datastore returned no school rows.');
+			}
 
-		if (!Storage::disk('public')->put($filePath, $file)) {
-			throw new Exception('Couldn\'t save file!');
+			$file = $this->ontarioRecordsToXlsx($records);
+
+			if (Storage::disk('public')->exists($filePath)) {
+				Storage::disk('public')->delete($filePath);
+			}
+
+			if (!Storage::disk('public')->put($filePath, $file)) {
+				throw new Exception('Couldn\'t save file!');
+			}
+		} catch (Exception $e) {
+			if (!Storage::disk('public')->exists($filePath)) {
+				throw $e;
+			}
 		}
 
 		$path = storage_path('app/public/'.$filePath);
@@ -186,32 +193,20 @@ class ImporterController extends Controller
 
 	private function fetchOntarioDatastoreRecords()
 	{
-		$resourceId = 'd16de265-35e9-4277-9381-0c311e802e39';
-		$records = [];
-		$offset = 0;
-		$limit = 1000;
+		// One request for the full English school list (~1.6k rows).
+		$query = http_build_query([
+			'resource_id' => 'd16de265-35e9-4277-9381-0c311e802e39',
+			'limit' => 32000,
+		]);
+		$response = $this->fetchRemote(
+			'https://data.ontario.ca/api/3/action/datastore_search?' . $query
+		);
+		$payload = json_decode($response['body'], true);
+		if (empty($payload['success'])) {
+			throw new Exception('Ontario datastore request failed.');
+		}
 
-		do {
-			$query = http_build_query([
-				'resource_id' => $resourceId,
-				'limit' => $limit,
-				'offset' => $offset,
-			]);
-			$response = $this->fetchRemote(
-				'https://data.ontario.ca/api/3/action/datastore_search?' . $query
-			);
-			$payload = json_decode($response['body'], true);
-			if (empty($payload['success'])) {
-				throw new Exception('Ontario datastore request failed.');
-			}
-
-			$batch = $payload['result']['records'] ?? [];
-			$records = array_merge($records, $batch);
-			$total = (int) ($payload['result']['total'] ?? count($records));
-			$offset += $limit;
-		} while ($offset < $total && count($batch) > 0);
-
-		return $records;
+		return $payload['result']['records'] ?? [];
 	}
 
 
@@ -266,31 +261,47 @@ class ImporterController extends Controller
 	{
 		$lastStatus = 0;
 		$lastError = '';
+		$maxAttempts = 3;
 
-		try {
-			$client = new Client([
-				'timeout' => 120,
-				'connect_timeout' => 20,
-				'http_errors' => false,
-				'allow_redirects' => true,
-				'headers' => [
-					'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-					'Accept' => 'application/json, */*',
-					'Accept-Language' => 'en-CA,en;q=0.9',
-				],
-			]);
+		$client = new Client([
+			'timeout' => 120,
+			'connect_timeout' => 20,
+			'http_errors' => false,
+			'allow_redirects' => true,
+			'headers' => [
+				'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+				'Accept' => 'application/json, */*',
+				'Accept-Language' => 'en-CA,en;q=0.9',
+			],
+		]);
 
-			$response = $client->get($url);
-			$lastStatus = $response->getStatusCode();
+		for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+			try {
+				$response = $client->get($url);
+				$lastStatus = $response->getStatusCode();
 
-			if ($lastStatus >= 200 && $lastStatus < 300) {
-				return [
-					'body' => (string) $response->getBody(),
-					'headers' => $response->getHeaders(),
-				];
+				if ($lastStatus >= 200 && $lastStatus < 300) {
+					return [
+						'body' => (string) $response->getBody(),
+						'headers' => $response->getHeaders(),
+					];
+				}
+
+				if (in_array($lastStatus, [429, 503], true) && $attempt < $maxAttempts) {
+					$retryAfter = (int) $response->getHeaderLine('Retry-After');
+					$wait = $retryAfter > 0 ? min($retryAfter, 60) : (20 * $attempt);
+					sleep($wait);
+					continue;
+				}
+
+				break;
+			} catch (ConnectException $e) {
+				$lastError = $e->getMessage();
+				if ($attempt < $maxAttempts) {
+					sleep(10 * $attempt);
+					continue;
+				}
 			}
-		} catch (ConnectException $e) {
-			$lastError = $e->getMessage();
 		}
 
 		$detail = $lastError ? ' ' . $lastError : '';

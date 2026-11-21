@@ -25,7 +25,8 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('crawl:closed-schools')->hourly();
-        $schedule->command('school:import')->hourly();
+        // Ontario rate-limits this host; ministry data updates about monthly.
+        $schedule->command('school:import')->daily();
         $schedule->command('crawl:revoked-schools')->everyMinute();
         // $schedule->command('app:backup-database')->daily();
 
